@@ -1,0 +1,633 @@
+{
+  "categories": [
+    {
+      "name": "tacos",
+      "status": "Active",
+      "products": [
+        {
+          "name": "Chawerma",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/Tacos Chawerma.jpeg"
+        },
+        {
+          "name": "Cordon Blue",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/cordon blue.jpg"
+        },
+        {
+          "name": "Escalop Grillee",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/Tacos Escalop Grillé.jpeg"
+        },
+        {
+          "name": "Escalop Pane",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/Tacos Escalop Pané.jpeg"
+        },
+        {
+          "name": "geant",
+          "price": 13.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/Tacos géant.jpeg"
+        },
+        {
+          "name": "nuggets",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/viande hachée.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Makloub",
+      "status": "Active",
+      "products": [
+        {
+          "name": "jambon",
+          "price": 7.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "cordon blue",
+          "price": 9.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/makloub/cordon blue.jpg"
+        },
+        {
+          "name": "thon",
+          "price": 7.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/makloub/thon.jpg"
+        },
+        {
+          "name": "chawarma",
+          "price": 8.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/Romdh/OneDrive/Bureau/RestaurantProgram/menu/makloub/chawerma.jpg"
+        },
+        {
+          "name": "poulet grillee",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/makloub/poulet grillée.jpg"
+        },
+        {
+          "name": "poulet pane ",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/makloub/poulet pané.jpg"
+        }
+      ]
+    },
+    {
+      "name": "box",
+      "status": "Active",
+      "products": [
+        {
+          "name": "S",
+          "price": 14.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/logo.png"
+        },
+        {
+          "name": "xxl",
+          "price": 38.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "L",
+          "price": 24.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "mexy cheese",
+          "price": 28.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "s cheese",
+          "price": 16.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "name": "Malfouf",
+      "status": "Active",
+      "products": [
+        {
+          "name": "cordon blue",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/malfouf/cordon blue.jpg"
+        },
+        {
+          "name": "poulet grille",
+          "price": 8.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/malfouf/escalope grillée.jpg"
+        },
+        {
+          "name": "poulet pane",
+          "price": 8.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/malfouf/escalope pané.jpg"
+        },
+        {
+          "name": "jambon",
+          "price": 6.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/malfouf/escalope pané.jpg"
+        },
+        {
+          "name": "chawerma",
+          "price": 7.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/malfouf/chawerma.jpg"
+        },
+        {
+          "name": "thon",
+          "price": 7.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/malfouf/thon.jpg"
+        }
+      ]
+    },
+    {
+      "name": "supplement",
+      "status": "Active",
+      "products": [
+        {
+          "name": "ouef",
+          "price": 1.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/ouef.jpg"
+        },
+        {
+          "name": "mozzarella",
+          "price": 2.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/mozzarella.jpg"
+        },
+        {
+          "name": "jambon",
+          "price": 1.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/jambon.jpg"
+        },
+        {
+          "name": "gruyere",
+          "price": 2.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/gruyère.jpg"
+        },
+        {
+          "name": "chedar",
+          "price": 2.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/chedar.jpg"
+        },
+        {
+          "name": "cheese",
+          "price": 2.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/frites.jpg"
+        },
+        {
+          "name": "L",
+          "price": 2.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/tacos/Tacos géant.jpeg"
+        },
+        {
+          "name": "cordan blue",
+          "price": 3.5,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "frites",
+          "price": 3.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/supplement/frites.jpg"
+        }
+      ]
+    },
+    {
+      "name": "plat",
+      "status": "Not-Active",
+      "products": [
+        {
+          "name": "chawerma",
+          "price": 15.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/chawerma.jpg"
+        },
+        {
+          "name": "poulet grillee",
+          "price": 16.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/poulet grillée.jpg"
+        },
+        {
+          "name": "Cuisse Grille",
+          "price": 15.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/cuisse grillée.jpg"
+        },
+        {
+          "name": "kebab",
+          "price": 16.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/kebab.jpg"
+        },
+        {
+          "name": "poisson grillee",
+          "price": 20.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/poisson grillee.jpg"
+        },
+        {
+          "name": "lasagne",
+          "price": 17.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/lasagne.jpg"
+        },
+        {
+          "name": "poulet pane",
+          "price": 16.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/poulet pannée.jpg"
+        },
+        {
+          "name": "poisson pane",
+          "price": 19.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/plat/poisson pannée.jpg"
+        }
+      ]
+    },
+    {
+      "name": "burger",
+      "status": "Active",
+      "products": [
+        {
+          "name": "chicken",
+          "price": 8.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/burger/crispy.jpg"
+        },
+        {
+          "name": "double chicken",
+          "price": 11.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/burger/double cheese.jpg"
+        },
+        {
+          "name": "steak",
+          "price": 10.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/burger/simple.jpg"
+        },
+        {
+          "name": "double steak",
+          "price": 14.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/burger/simple.jpg"
+        }
+      ]
+    },
+    {
+      "name": "cha9loub",
+      "status": "Not-Active",
+      "products": []
+    },
+    {
+      "name": "sandwich",
+      "status": "Not-Active",
+      "products": [
+        {
+          "name": "thon",
+          "price": 6.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/sandwich/thon.jpg"
+        },
+        {
+          "name": "jambon",
+          "price": 5.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/sandwich/jambon.jpg"
+        },
+        {
+          "name": "chawerma",
+          "price": 6.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/sandwich/chawerma.jpg"
+        },
+        {
+          "name": "poulet grillee",
+          "price": 7.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/sandwich/poulet grillé.jpg"
+        },
+        {
+          "name": "poulet pane",
+          "price": 7.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/sandwich/poulet panné.jpg"
+        },
+        {
+          "name": "cordon blue",
+          "price": 7.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/sandwich/cordon blue.jpg"
+        }
+      ]
+    },
+    {
+      "name": "baguette farcie",
+      "status": "Active",
+      "products": [
+        {
+          "name": "thon",
+          "price": 9.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/baguette farcie/thon.jpg"
+        },
+        {
+          "name": "jambon",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/baguette farcie/jambon.jpg"
+        },
+        {
+          "name": "chawerma",
+          "price": 9.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/baguette farcie/chawerma.jpg"
+        },
+        {
+          "name": "poulet grillee",
+          "price": 10.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/baguette farcie/poulet grillée.jpg"
+        },
+        {
+          "name": "poulet pané",
+          "price": 10.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/baguette farcie/poulet panée.jpg"
+        },
+        {
+          "name": "cordon bleu",
+          "price": 10.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/baguette farcie/cordon blue.jpg"
+        }
+      ]
+    },
+    {
+      "name": "pizza",
+      "status": "Active",
+      "products": [
+        {
+          "name": "thon",
+          "price": 12.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "4saison",
+          "price": 13.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "margeritta",
+          "price": 10.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "4fromage",
+          "price": 15.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "pepperone",
+          "price": 13.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "escalop",
+          "price": 16.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "chawarma",
+          "price": 15.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "campione",
+          "price": 15.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "name": "boisson",
+      "status": "Active",
+      "products": [
+        {
+          "name": "cola",
+          "price": 2.5,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "eau 1.5L",
+          "price": 2.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "eau 0.5L",
+          "price": 1.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "name": "Plat",
+      "status": "Not-Active",
+      "products": [
+        {
+          "name": "Mixte",
+          "price": 36.5,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "Crispy",
+          "price": 32.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "farme ranch ",
+          "price": 36.0,
+          "status": "Not-Active",
+          "description": "",
+          "image": ""
+        },
+        {
+          "name": "Pecher",
+          "price": 42.0,
+          "status": "Active",
+          "description": "",
+          "image": ""
+        }
+      ]
+    },
+    {
+      "name": "ciabatta",
+      "status": "Active",
+      "products": [
+        {
+          "name": "thon",
+          "price": 8.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/thon.jpg"
+        },
+        {
+          "name": "jambon",
+          "price": 7.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/thon.jpg"
+        },
+        {
+          "name": "chawerma",
+          "price": 8.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/chawerma.jpg"
+        },
+        {
+          "name": "poulet grillee",
+          "price": 9.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/poulet grillée.jpg"
+        },
+        {
+          "name": "poulet pane",
+          "price": 9.0,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/poulet pannée.jpg"
+        },
+        {
+          "name": "cordon blue",
+          "price": 9.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/cordon blue.jpg"
+        },
+        {
+          "name": "Wood's",
+          "price": 12.5,
+          "status": "Active",
+          "description": "",
+          "image": "C:/Users/romdh/Dropbox/PC/Desktop/adem/RestaurantProgram/menu/panozzo/wood's.jpg"
+        }
+      ]
+    }
+  ]
+}
