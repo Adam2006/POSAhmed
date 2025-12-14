@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QLabel, QScrollArea, QGridLayout, QStackedWidget, QMessageBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QFont, QIcon, QPixmap
 import config
 from models import Category, Product, Register
 from views.category_view import CategoryView
@@ -16,6 +16,7 @@ from views.settings_view import SettingsView
 from views.history_view import HistoryView
 from views.statistics_view import StatisticsView
 from views.employee_view import EmployeeView
+from views.client_view import ClientView
 from views.register_dialog import OpenRegisterDialog, CloseRegisterDialog
 from views.admin_auth_dialog import AdminAuthDialog
 from controllers.order_controller import OrderController
@@ -31,7 +32,7 @@ class MainWindow(QMainWindow):
 
         # Set window icon if exists
         try:
-            icon = QIcon("ico.png")
+            icon = QIcon("assets/icons/logo.ico")
             self.setWindowIcon(icon)
         except:
             pass
@@ -86,13 +87,30 @@ class MainWindow(QMainWindow):
         header_layout = QHBoxLayout(header_widget)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        header_label = QLabel(config.RESTAURANT_NAME)
+        # Logo image instead of text
+        header_label = QLabel()
         header_label.setProperty("class", "header-label")
         header_label.setAlignment(Qt.AlignCenter)
-        font = QFont()
-        font.setPointSize(24)
-        font.setBold(True)
-        header_label.setFont(font)
+        try:
+            logo_pixmap = QPixmap("assets/icons/logo.ico")
+            if not logo_pixmap.isNull():
+                # Scale logo to reasonable size (height ~60px)
+                scaled_logo = logo_pixmap.scaledToHeight(60, Qt.SmoothTransformation)
+                header_label.setPixmap(scaled_logo)
+            else:
+                # Fallback to text if image fails to load
+                header_label.setText(config.RESTAURANT_NAME)
+                font = QFont()
+                font.setPointSize(24)
+                font.setBold(True)
+                header_label.setFont(font)
+        except:
+            # Fallback to text if any error occurs
+            header_label.setText(config.RESTAURANT_NAME)
+            font = QFont()
+            font.setPointSize(24)
+            font.setBold(True)
+            header_label.setFont(font)
         header_layout.addWidget(header_label)
 
         # Register status label
@@ -136,6 +154,14 @@ class MainWindow(QMainWindow):
         employees_btn.setFont(btn_font)
         employees_btn.clicked.connect(self.open_employees)
         header_layout.addWidget(employees_btn)
+
+        # Clients button (admin only)
+        clients_btn = QPushButton("💳 Clients")
+        clients_btn.setMaximumWidth(120)
+        clients_btn.setMinimumHeight(40)
+        clients_btn.setFont(btn_font)
+        clients_btn.clicked.connect(self.open_clients)
+        header_layout.addWidget(clients_btn)
 
         # Settings button (top right)
         settings_btn = QPushButton("⚙ Settings")
@@ -187,6 +213,11 @@ class MainWindow(QMainWindow):
         self.employee_view.employee_view_closed.connect(self.close_employees)
         self.stacked_widget.addWidget(self.employee_view)
 
+        # Client view
+        self.client_view = ClientView()
+        self.client_view.client_view_closed.connect(self.close_clients)
+        self.stacked_widget.addWidget(self.client_view)
+
         # Show main view by default
         self.stacked_widget.setCurrentIndex(0)
 
@@ -218,7 +249,9 @@ class MainWindow(QMainWindow):
     def on_checkout(self, is_delivery, delivery_data):
         """Handle checkout"""
         try:
-            success = self.order_controller.checkout(is_delivery, delivery_data)
+            # Get selected client ID from cart view
+            client_id = self.cart_view.get_selected_client_id()
+            success = self.order_controller.checkout(is_delivery, delivery_data, client_id)
             if success:
                 self.cart_view.refresh()
         except Exception as e:
@@ -281,6 +314,21 @@ class MainWindow(QMainWindow):
         """Close employees and return to main view"""
         self.stacked_widget.setCurrentIndex(0)
 
+    def open_clients(self):
+        """Open client management page (admin only)"""
+        auth_dialog = AdminAuthDialog(self)
+        if auth_dialog.exec_() == auth_dialog.Accepted:
+            # Refresh client data before showing
+            self.client_view.load_clients()
+            # Switch to client view
+            self.stacked_widget.setCurrentIndex(5)
+
+    def close_clients(self):
+        """Close clients and return to main view"""
+        self.stacked_widget.setCurrentIndex(0)
+        # Refresh client list in cart view
+        self.cart_view.refresh_clients()
+
     def check_register(self):
         """Check if a register is open and update UI accordingly"""
         self.current_register = Register.get_current_register()
@@ -291,14 +339,12 @@ class MainWindow(QMainWindow):
         if self.current_register:
             # Register is open
             self.register_btn.setText("Close Register")
-            self.register_status_label.setText(
-                f"Register Open: {self.current_register.shift_type.title()} - {self.current_register.employee_name}"
-            )
+            self.register_status_label.setText("Register Open")
             self.register_status_label.setStyleSheet("color: #2d5016; font-weight: bold;")
         else:
             # No register open
             self.register_btn.setText("Open Register")
-            self.register_status_label.setText("⚠ No Register Open - Sales Disabled")
+            self.register_status_label.setText("⚠ No Register Open")
             self.register_status_label.setStyleSheet("color: #8d2020; font-weight: bold;")
 
     def toggle_register(self):

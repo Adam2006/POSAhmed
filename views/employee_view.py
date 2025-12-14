@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QLineEdit, QDoubleSpinBox, QTextEdit, QDateEdit, QComboBox, QMessageBox
 )
 from PyQt5.QtCore import Qt, QDate, pyqtSignal, QTimer
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QColor
 from models import Employee, EmployeeExpense, EmployeeDayOff
 from datetime import datetime
 

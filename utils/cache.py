@@ -13,6 +13,7 @@ class QueryCache:
     def __init__(self, max_size=100, ttl_seconds=300):
         self.cache = {}
         self.access_times = {}
+        self.func_names = {}  # Map hash -> func_name for pattern matching
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
 
@@ -24,7 +25,10 @@ class QueryCache:
             'kwargs': str(sorted(kwargs.items()))
         }
         key_str = json.dumps(key_dict, sort_keys=True)
-        return hashlib.md5(key_str.encode()).hexdigest()
+        key_hash = hashlib.md5(key_str.encode()).hexdigest()
+        # Store the function name for this hash
+        self.func_names[key_hash] = func_name
+        return key_hash
 
     def _is_expired(self, key):
         """Check if cache entry is expired"""
@@ -40,6 +44,7 @@ class QueryCache:
         oldest_key = min(self.access_times.items(), key=lambda x: x[1])[0]
         self.cache.pop(oldest_key, None)
         self.access_times.pop(oldest_key, None)
+        self.func_names.pop(oldest_key, None)
 
     def get(self, func_name, args, kwargs):
         """Get cached result"""
@@ -66,13 +71,19 @@ class QueryCache:
         """Clear entire cache"""
         self.cache.clear()
         self.access_times.clear()
+        self.func_names.clear()
 
     def invalidate_pattern(self, pattern):
-        """Invalidate cache entries matching a pattern (e.g., 'Employee.')"""
-        keys_to_remove = [k for k in self.cache.keys() if pattern in str(k)]
+        """Invalidate cache entries matching a pattern (e.g., 'Order', 'Employee', 'Client')"""
+        keys_to_remove = []
+        for key, func_name in self.func_names.items():
+            if pattern in func_name:
+                keys_to_remove.append(key)
+
         for key in keys_to_remove:
             self.cache.pop(key, None)
             self.access_times.pop(key, None)
+            self.func_names.pop(key, None)
 
 
 # Global cache instance

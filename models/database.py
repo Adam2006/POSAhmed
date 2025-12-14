@@ -169,6 +169,21 @@ class Database:
             )
         """)
 
+        # Clients table for credit/monthly payment customers
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS clients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT,
+                address TEXT,
+                credit_limit REAL DEFAULT 0.0,
+                current_balance REAL DEFAULT 0.0,
+                notes TEXT,
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         # Create indexes for better performance
         self.execute("CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(order_date)")
@@ -185,6 +200,10 @@ class Database:
         self.execute("CREATE INDEX IF NOT EXISTS idx_employee_days_off_employee ON employee_days_off(employee_id)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_employee_days_off_start_date ON employee_days_off(start_date)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_employee_days_off_end_date ON employee_days_off(end_date)")
+
+        # Create indexes for clients
+        self.execute("CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)")
+        self.execute("CREATE INDEX IF NOT EXISTS idx_clients_active ON clients(is_active)")
         self.commit()
 
         # Initialize default settings
@@ -264,6 +283,31 @@ class Database:
                 print(f"Migration: Migrated {len(old_data)} days off records to date range format")
         except Exception as e:
             print(f"Migration error for employee_days_off: {e}")
+
+        # Add client_id, is_paid, price_modified, and reprint_count columns to orders table
+        try:
+            cursor = self.execute("PRAGMA table_info(orders)")
+            columns = [row['name'] for row in cursor.fetchall()]
+
+            if 'client_id' not in columns:
+                self.execute("ALTER TABLE orders ADD COLUMN client_id INTEGER")
+                print("Migration: Added client_id column to orders table")
+
+            if 'is_paid' not in columns:
+                self.execute("ALTER TABLE orders ADD COLUMN is_paid INTEGER DEFAULT 1")
+                print("Migration: Added is_paid column to orders table")
+
+            if 'price_modified' not in columns:
+                self.execute("ALTER TABLE orders ADD COLUMN price_modified INTEGER DEFAULT 0")
+                print("Migration: Added price_modified column to orders table")
+
+            if 'reprint_count' not in columns:
+                self.execute("ALTER TABLE orders ADD COLUMN reprint_count INTEGER DEFAULT 0")
+                print("Migration: Added reprint_count column to orders table")
+
+            self.commit()
+        except Exception as e:
+            print(f"Migration error for orders table: {e}")
 
     def _initialize_default_settings(self):
         """Insert default settings if not exists"""

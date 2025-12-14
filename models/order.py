@@ -31,7 +31,8 @@ class Order:
 
     def __init__(self, id=None, order_number=None, order_date='', order_time='',
                  total_amount=0.0, is_delivery=False, delivery_address='',
-                 delivery_phone='', delivery_price=0.0, register_id=None):
+                 delivery_phone='', delivery_price=0.0, register_id=None,
+                 client_id=None, is_paid=True, price_modified=False, reprint_count=0):
         self.id = id
         self.order_number = order_number
         self.order_date = order_date
@@ -42,6 +43,10 @@ class Order:
         self.delivery_phone = delivery_phone
         self.delivery_price = delivery_price
         self.register_id = register_id
+        self.client_id = client_id
+        self.is_paid = is_paid
+        self.price_modified = price_modified
+        self.reprint_count = reprint_count
         self.items = []
 
     @staticmethod
@@ -80,7 +85,11 @@ class Order:
                 delivery_address=row['delivery_address'],
                 delivery_phone=row['delivery_phone'],
                 delivery_price=row['delivery_price'],
-                register_id=row['register_id'] if 'register_id' in row.keys() else None
+                register_id=row['register_id'] if 'register_id' in row.keys() else None,
+                client_id=row['client_id'] if 'client_id' in row.keys() else None,
+                is_paid=bool(row['is_paid']) if 'is_paid' in row.keys() else True,
+                price_modified=bool(row['price_modified']) if 'price_modified' in row.keys() else False,
+                reprint_count=row['reprint_count'] if 'reprint_count' in row.keys() else 0
             )
             # Only load items if explicitly requested (saves memory)
             if load_items:
@@ -110,7 +119,11 @@ class Order:
                 delivery_address=row['delivery_address'],
                 delivery_phone=row['delivery_phone'],
                 delivery_price=row['delivery_price'],
-                register_id=row['register_id']
+                register_id=row['register_id'],
+                client_id=row['client_id'] if 'client_id' in row.keys() else None,
+                is_paid=bool(row['is_paid']) if 'is_paid' in row.keys() else True,
+                price_modified=bool(row['price_modified']) if 'price_modified' in row.keys() else False,
+                reprint_count=row['reprint_count'] if 'reprint_count' in row.keys() else 0
             )
             # Load order items only if requested
             if load_items:
@@ -136,7 +149,11 @@ class Order:
                 delivery_address=row['delivery_address'],
                 delivery_phone=row['delivery_phone'],
                 delivery_price=row['delivery_price'],
-                register_id=row['register_id'] if 'register_id' in row.keys() else None
+                register_id=row['register_id'] if 'register_id' in row.keys() else None,
+                client_id=row['client_id'] if 'client_id' in row.keys() else None,
+                is_paid=bool(row['is_paid']) if 'is_paid' in row.keys() else True,
+                price_modified=bool(row['price_modified']) if 'price_modified' in row.keys() else False,
+                reprint_count=row['reprint_count'] if 'reprint_count' in row.keys() else 0
             )
             order.load_items()
             return order
@@ -174,10 +191,12 @@ class Order:
             # Insert new order
             cursor = db.execute(
                 """INSERT INTO orders (order_number, order_date, order_time, total_amount,
-                   is_delivery, delivery_address, delivery_phone, delivery_price, register_id)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   is_delivery, delivery_address, delivery_phone, delivery_price, register_id,
+                   client_id, is_paid, price_modified, reprint_count)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (self.order_number, self.order_date, self.order_time, self.total_amount,
-                 int(self.is_delivery), self.delivery_address, self.delivery_phone, self.delivery_price, self.register_id)
+                 int(self.is_delivery), self.delivery_address, self.delivery_phone, self.delivery_price, self.register_id,
+                 self.client_id, int(self.is_paid), int(self.price_modified), self.reprint_count)
             )
             self.id = cursor.lastrowid
 
@@ -196,10 +215,12 @@ class Order:
             db.execute(
                 """UPDATE orders SET order_number = ?, order_date = ?, order_time = ?,
                    total_amount = ?, is_delivery = ?, delivery_address = ?,
-                   delivery_phone = ?, delivery_price = ?, register_id = ? WHERE id = ?""",
+                   delivery_phone = ?, delivery_price = ?, register_id = ?,
+                   client_id = ?, is_paid = ?, price_modified = ?, reprint_count = ? WHERE id = ?""",
                 (self.order_number, self.order_date, self.order_time, self.total_amount,
                  int(self.is_delivery), self.delivery_address, self.delivery_phone,
-                 self.delivery_price, self.register_id, self.id)
+                 self.delivery_price, self.register_id,
+                 self.client_id, int(self.is_paid), int(self.price_modified), self.reprint_count, self.id)
             )
 
         db.commit()

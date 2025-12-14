@@ -3,11 +3,12 @@ Shopping cart view
 """
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QScrollArea, QLabel, QPushButton,
-    QHBoxLayout, QCheckBox
+    QHBoxLayout, QCheckBox, QComboBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 import config
+from models import Client
 
 
 class CartView(QWidget):
@@ -60,6 +61,21 @@ class CartView(QWidget):
         self.total_label.setFont(font)
         self.total_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.total_label)
+
+        # Client selection
+        client_layout = QHBoxLayout()
+        client_label = QLabel("Client:")
+        client_font = QFont()
+        client_font.setPointSize(12)
+        client_label.setFont(client_font)
+        client_layout.addWidget(client_label)
+
+        self.client_combo = QComboBox()
+        self.client_combo.setFont(client_font)
+        self.client_combo.addItem("Cash Sale (No Client)", None)
+        self.load_clients()
+        client_layout.addWidget(self.client_combo, stretch=1)
+        layout.addLayout(client_layout)
 
         # Delivery checkbox
         self.delivery_checkbox = QCheckBox("  Delivery?")
@@ -201,6 +217,36 @@ class CartView(QWidget):
 
                 self.refresh()
 
+    def load_clients(self):
+        """Load clients from database"""
+        try:
+            clients = Client.get_all(active_only=True)
+            for client in clients:
+                self.client_combo.addItem(client.name, client.id)
+        except Exception as e:
+            print(f"Error loading clients: {e}")
+
+    def refresh_clients(self):
+        """Refresh the client dropdown list"""
+        # Save current selection
+        current_client_id = self.client_combo.currentData()
+
+        # Clear and reload
+        self.client_combo.clear()
+        self.client_combo.addItem("Cash Sale (No Client)", None)
+        self.load_clients()
+
+        # Restore selection if client still exists
+        if current_client_id is not None:
+            for i in range(self.client_combo.count()):
+                if self.client_combo.itemData(i) == current_client_id:
+                    self.client_combo.setCurrentIndex(i)
+                    break
+
+    def get_selected_client_id(self):
+        """Get the selected client ID"""
+        return self.client_combo.currentData()
+
     def on_delivery_changed(self, state):
         """Handle delivery checkbox change"""
         if state == Qt.Checked:
@@ -223,3 +269,4 @@ class CartView(QWidget):
         # Reset after checkout
         self.delivery_checkbox.setChecked(False)
         self.delivery_data = {"place": "", "num": "", "price": 0}
+        self.client_combo.setCurrentIndex(0)  # Reset to "Cash Sale"

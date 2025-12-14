@@ -4,10 +4,10 @@ Order history view for viewing past orders and sales reports
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView, QDialog,
-    QMessageBox, QLineEdit
+    QMessageBox, QLineEdit, QSizePolicy
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QColor
 from models import Order, Register
 
 
@@ -83,6 +83,9 @@ class ReprintDialog(QDialog):
         try:
             from utils.printer import print_customer_receipt
             print_customer_receipt(self.order)
+            # Increment reprint count
+            self.order.reprint_count += 1
+            self.order.save()
             QMessageBox.information(self, "Success", f"Customer receipt for Order #{self.order.order_number} has been printed.")
             self.accept()
         except Exception as e:
@@ -93,6 +96,9 @@ class ReprintDialog(QDialog):
         try:
             from utils.printer import print_kitchen_receipt
             print_kitchen_receipt(self.order)
+            # Increment reprint count
+            self.order.reprint_count += 1
+            self.order.save()
             QMessageBox.information(self, "Success", f"Kitchen receipt for Order #{self.order.order_number} has been printed.")
             self.accept()
         except Exception as e:
@@ -104,6 +110,9 @@ class ReprintDialog(QDialog):
             from utils.printer import print_customer_receipt, print_kitchen_receipt
             print_customer_receipt(self.order)
             print_kitchen_receipt(self.order)
+            # Increment reprint count
+            self.order.reprint_count += 1
+            self.order.save()
             QMessageBox.information(self, "Success", f"Both receipts for Order #{self.order.order_number} have been printed.")
             self.accept()
         except Exception as e:
@@ -287,16 +296,15 @@ class HistoryView(QWidget):
 
         # Orders table
         self.orders_table = QTableWidget()
-        self.orders_table.setColumnCount(6)
+        self.orders_table.setColumnCount(7)
         self.orders_table.setHorizontalHeaderLabels([
-            "Order #", "Date", "Time", "Items", "Total (dt)", "Type"
+            "Order #", "Date", "Time", "Items", "Total (dt)", "Type", "Reprints"
         ])
-        self.orders_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.orders_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.orders_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.orders_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        self.orders_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        self.orders_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.Stretch)
+        # Set table to fit content width (sum of all column widths)
+        self.orders_table.horizontalHeader().setStretchLastSection(False)
+        self.orders_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.orders_table.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.orders_table.setMaximumWidth(800)  # Set maximum width to prevent stretching
         self.orders_table.verticalHeader().setVisible(False)
         self.orders_table.setFont(font)
         self.orders_table.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -398,27 +406,48 @@ class HistoryView(QWidget):
         self.orders_table.setRowCount(len(self.orders))
 
         for row, order in enumerate(self.orders):
-            # Order number
-            self.orders_table.setItem(row, 0, QTableWidgetItem(str(order.order_number)))
+            # Order number (with color if price modified)
+            order_num_item = QTableWidgetItem(str(order.order_number))
+            order_num_item.setTextAlignment(Qt.AlignCenter)
+            if order.price_modified:
+                order_num_item.setForeground(QColor(255, 0, 0))  # Red color
+                order_num_item.setToolTip("This order has had price modifications")
+            self.orders_table.setItem(row, 0, order_num_item)
 
             # Date
-            self.orders_table.setItem(row, 1, QTableWidgetItem(order.order_date))
+            date_item = QTableWidgetItem(order.order_date)
+            date_item.setTextAlignment(Qt.AlignCenter)
+            self.orders_table.setItem(row, 1, date_item)
 
             # Time
-            self.orders_table.setItem(row, 2, QTableWidgetItem(order.order_time))
+            time_item = QTableWidgetItem(order.order_time)
+            time_item.setTextAlignment(Qt.AlignCenter)
+            self.orders_table.setItem(row, 2, time_item)
 
             # Number of items
             item_count = sum(item.quantity for item in order.items)
-            self.orders_table.setItem(row, 3, QTableWidgetItem(str(item_count)))
+            items_item = QTableWidgetItem(str(item_count))
+            items_item.setTextAlignment(Qt.AlignCenter)
+            self.orders_table.setItem(row, 3, items_item)
 
             # Total
             total_item = QTableWidgetItem(f"{order.total_amount:.2f}")
-            total_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            total_item.setTextAlignment(Qt.AlignCenter)
             self.orders_table.setItem(row, 4, total_item)
 
             # Type
             order_type = "Delivery" if order.is_delivery else "Dine-in"
-            self.orders_table.setItem(row, 5, QTableWidgetItem(order_type))
+            type_item = QTableWidgetItem(order_type)
+            type_item.setTextAlignment(Qt.AlignCenter)
+            self.orders_table.setItem(row, 5, type_item)
+
+            # Reprint count indicator
+            reprint_text = str(order.reprint_count) if order.reprint_count > 0 else ""
+            reprint_item = QTableWidgetItem(reprint_text)
+            reprint_item.setTextAlignment(Qt.AlignCenter)
+            if order.reprint_count > 0:
+                reprint_item.setToolTip(f"This receipt has been reprinted {order.reprint_count} time(s)")
+            self.orders_table.setItem(row, 6, reprint_item)
 
     def update_register_info(self):
         """Update register information display"""
@@ -514,7 +543,9 @@ class HistoryView(QWidget):
 
         # Show reprint dialog to choose which ticket to print
         dialog = ReprintDialog(order, self)
-        dialog.exec_()
+        if dialog.exec_() == dialog.Accepted:
+            # Reload orders to update reprint count
+            self.load_orders()
 
     def delete_order(self):
         """Delete selected order (requires admin auth)"""

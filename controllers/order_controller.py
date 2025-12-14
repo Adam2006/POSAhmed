@@ -31,6 +31,7 @@ class OrderController:
             'category_name': category_name,
             'quantity': quantity,
             'unit_price': product.price,
+            'original_price': product.price,  # Store original price for comparison
             'discount': 0.0,
             'final_price': product.price * quantity,
             'notes': notes
@@ -73,7 +74,7 @@ class OrderController:
         self.cart_items = []
         self.current_order_number = None
 
-    def checkout(self, is_delivery=False, delivery_data=None):
+    def checkout(self, is_delivery=False, delivery_data=None, client_id=None):
         """Process checkout and create order"""
         if not self.cart_items:
             return False
@@ -90,12 +91,29 @@ class OrderController:
         order.order_time = datetime.now().strftime("%H:%M:%S")
         order.register_id = current_register.id
 
+        # Set client and payment status
+        order.client_id = client_id
+        if client_id is not None:
+            order.is_paid = False  # Credit sale
+        else:
+            order.is_paid = True   # Cash sale
+
         # Set delivery info
         if is_delivery and delivery_data:
             order.is_delivery = True
             order.delivery_address = delivery_data.get('place', '')
             order.delivery_phone = delivery_data.get('num', '')
             order.delivery_price = float(delivery_data.get('price', 0))
+
+        # Check if any prices were modified
+        price_modified = False
+        for cart_item in self.cart_items:
+            original_price = cart_item.get('original_price', cart_item['unit_price'])
+            if cart_item['unit_price'] != original_price or cart_item['discount'] > 0:
+                price_modified = True
+                break
+
+        order.price_modified = price_modified
 
         # Add items to order
         for cart_item in self.cart_items:
@@ -111,6 +129,13 @@ class OrderController:
 
         # Save order to database
         order.save()
+
+        # Update client balance if credit sale
+        if client_id is not None and not order.is_paid:
+            from models import Client
+            client = Client.get_by_id(client_id)
+            if client:
+                client.add_to_balance(order.total_amount)
 
         # Print receipt
         self.print_receipt(order)
