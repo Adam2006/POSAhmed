@@ -3,9 +3,9 @@ Statistics view for admin to view comprehensive sales reports and register histo
 """
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTableWidget, QTableWidgetItem, QHeaderView, QDateEdit, QDialog
+    QTableWidget, QTableWidgetItem, QHeaderView, QDialog
 )
-from PyQt5.QtCore import Qt, QDate, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QColor
 from models import Order, Register, get_db
 
@@ -154,44 +154,29 @@ class StatisticsView(QWidget):
 
     def setup_registers_view(self, layout, font):
         """Setup the registers view"""
-        # Date filter section
-        filter_layout = QHBoxLayout()
+        # Search section
+        search_layout = QHBoxLayout()
 
-        filter_label = QLabel("Filter by Date:")
-        filter_label.setFont(font)
-        filter_layout.addWidget(filter_label)
+        search_label = QLabel("Search:")
+        search_label.setFont(font)
+        search_layout.addWidget(search_label)
 
-        self.start_date = QDateEdit()
-        self.start_date.setFont(font)
-        self.start_date.setCalendarPopup(True)
-        self.start_date.setDate(QDate.currentDate().addMonths(-1))
-        self.start_date.setDisplayFormat("yyyy/MM/dd")
-        filter_layout.addWidget(self.start_date)
+        from PyQt5.QtWidgets import QLineEdit
+        self.search_input = QLineEdit()
+        self.search_input.setFont(font)
+        self.search_input.setPlaceholderText("Search by employee name, shift type, or date...")
+        self.search_input.textChanged.connect(self.apply_search)
+        search_layout.addWidget(self.search_input, stretch=1)
 
-        filter_layout.addWidget(QLabel("to"))
+        clear_search_btn = QPushButton("Clear")
+        clear_search_btn.setFont(font)
+        clear_search_btn.setMinimumHeight(35)
+        clear_search_btn.clicked.connect(self.clear_search)
+        search_layout.addWidget(clear_search_btn)
 
-        self.end_date = QDateEdit()
-        self.end_date.setFont(font)
-        self.end_date.setCalendarPopup(True)
-        self.end_date.setDate(QDate.currentDate())
-        self.end_date.setDisplayFormat("yyyy/MM/dd")
-        filter_layout.addWidget(self.end_date)
+        search_layout.addStretch()
 
-        apply_filter_btn = QPushButton("Apply Filter")
-        apply_filter_btn.setFont(font)
-        apply_filter_btn.setMinimumHeight(35)
-        apply_filter_btn.clicked.connect(self.apply_filter)
-        filter_layout.addWidget(apply_filter_btn)
-
-        show_all_btn = QPushButton("Show All")
-        show_all_btn.setFont(font)
-        show_all_btn.setMinimumHeight(35)
-        show_all_btn.clicked.connect(self.show_all_data)
-        filter_layout.addWidget(show_all_btn)
-
-        filter_layout.addStretch()
-
-        layout.addLayout(filter_layout)
+        layout.addLayout(search_layout)
 
         # Summary section
         self.summary_label = QLabel()
@@ -264,31 +249,38 @@ class StatisticsView(QWidget):
 
         layout.addLayout(pagination_layout)
 
-        # View details button
+        # Action buttons layout
+        action_buttons_layout = QHBoxLayout()
+
         view_details_btn = QPushButton("View Register Details")
         view_details_btn.setProperty("class", "primary-button")
         view_details_btn.setFont(font)
         view_details_btn.setMinimumHeight(40)
         view_details_btn.clicked.connect(self.view_selected_register)
-        layout.addWidget(view_details_btn)
+        action_buttons_layout.addWidget(view_details_btn)
 
-    def load_data(self, start_date=None, end_date=None):
+        print_register_btn = QPushButton("Print Register Report")
+        print_register_btn.setFont(font)
+        print_register_btn.setMinimumHeight(40)
+        print_register_btn.clicked.connect(self.print_selected_register)
+        action_buttons_layout.addWidget(print_register_btn)
+
+        print_all_btn = QPushButton("Print All Shown Registers")
+        print_all_btn.setFont(font)
+        print_all_btn.setMinimumHeight(40)
+        print_all_btn.clicked.connect(self.print_all_shown_registers)
+        action_buttons_layout.addWidget(print_all_btn)
+
+        layout.addLayout(action_buttons_layout)
+
+    def load_data(self):
         """Load orders and registers from database"""
-        # Load orders (without items to save memory)
-        if start_date and end_date:
-            self.orders = Order.get_all(start_date, end_date, load_items=False)
-        else:
-            self.orders = Order.get_all(load_items=False)
+        # Load all orders (without items to save memory)
+        self.orders = Order.get_all(load_items=False)
 
-        # Load registers (with optional date filtering)
-        self.all_registers = Register.get_all()
-
-        # Filter registers by date if needed
-        if start_date and end_date:
-            self.all_registers = [
-                reg for reg in self.all_registers
-                if start_date <= reg.opened_at.split()[0] <= end_date
-            ]
+        # Load all registers
+        self.original_registers = Register.get_all()
+        self.all_registers = self.original_registers.copy()
 
         # Reset to first page when loading new data
         self.current_page = 1
@@ -421,15 +413,35 @@ class StatisticsView(QWidget):
         )
         self.summary_label.setText(summary_text)
 
-    def apply_filter(self):
-        """Apply date filter"""
-        start = self.start_date.date().toString("yyyy/MM/dd")
-        end = self.end_date.date().toString("yyyy/MM/dd")
-        self.load_data(start, end)
+    def apply_search(self):
+        """Apply search filter"""
+        search_text = self.search_input.text().strip().lower()
 
-    def show_all_data(self):
-        """Show all data without filter"""
-        self.load_data()
+        if not search_text:
+            # No search, show all
+            self.all_registers = self.original_registers.copy()
+        else:
+            # Filter registers based on search text
+            self.all_registers = [
+                reg for reg in self.original_registers
+                if (search_text in reg.employee_name.lower() or
+                    search_text in reg.shift_type.lower() or
+                    search_text in reg.opened_at.lower() or
+                    (reg.closed_at and search_text in reg.closed_at.lower()))
+            ]
+
+        # Reset to first page and update display
+        self.current_page = 1
+        self.apply_pagination()
+        self.update_summary()
+
+    def clear_search(self):
+        """Clear search filter"""
+        self.search_input.clear()
+        self.all_registers = self.original_registers.copy()
+        self.current_page = 1
+        self.apply_pagination()
+        self.update_summary()
 
     def view_selected_register(self):
         """View details of selected register"""
@@ -454,3 +466,291 @@ class StatisticsView(QWidget):
         """Show register details in a dialog"""
         dialog = RegisterDetailDialog(register, self)
         dialog.exec_()
+
+    def get_register_product_summary(self, register):
+        """Get product summary for a register grouped by product type"""
+        db = get_db()
+
+        # Get all order items for orders in this register with category names
+        cursor = db.execute("""
+            SELECT oi.product_name,
+                   c.name as category_name,
+                   SUM(oi.quantity) as total_quantity
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            LEFT JOIN products p ON oi.product_name = p.name
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE o.register_id = ?
+            GROUP BY oi.product_name, c.name
+            ORDER BY c.name, oi.product_name
+        """, (register.id,))
+
+        products = {}
+        for row in cursor.fetchall():
+            category_name = row['category_name'] if row['category_name'] else ''
+            product_name = row['product_name']
+            total_quantity = row['total_quantity']
+
+            product_display = f"{category_name} {product_name}" if category_name else product_name
+            products[product_display] = total_quantity
+
+        return products
+
+    def print_selected_register(self):
+        """Print report for selected register"""
+        from PyQt5.QtWidgets import QMessageBox
+
+        selected_rows = self.registers_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "No Selection", "Please select a register to print.")
+            return
+
+        row = selected_rows[0].row()
+        register = self.registers[row]
+
+        # Get product summary
+        products = self.get_register_product_summary(register)
+
+        if not products:
+            QMessageBox.information(self, "No Data", "No products sold in this register.")
+            return
+
+        # Print the register report
+        self.print_register_report(register, products)
+
+        QMessageBox.information(self, "Success", "Register report sent to printer.")
+
+    def print_all_shown_registers(self):
+        """Print combined report for all currently displayed registers (respects search filter)"""
+        from PyQt5.QtWidgets import QMessageBox
+
+        if not self.all_registers:
+            QMessageBox.warning(self, "No Data", "No registers to print.")
+            return
+
+        # Confirm before printing
+        reply = QMessageBox.question(
+            self,
+            "Confirm Print",
+            f"Print combined report for all {len(self.all_registers)} shown registers?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            # Combine products from all registers
+            combined_products = {}
+            total_sales = 0
+            total_orders = 0
+
+            for register in self.all_registers:
+                products = self.get_register_product_summary(register)
+                # Sum up products
+                for product_name, quantity in products.items():
+                    combined_products[product_name] = combined_products.get(product_name, 0) + quantity
+
+                # Sum up sales and orders
+                total_sales += register.get_total_sales()
+                total_orders += register.get_orders_count()
+
+            if not combined_products:
+                QMessageBox.information(self, "No Data", "No products sold in the selected registers.")
+                return
+
+            # Print combined report
+            self.print_combined_registers_report(self.all_registers, combined_products, total_sales, total_orders)
+            QMessageBox.information(self, "Success", f"Combined report for {len(self.all_registers)} registers sent to printer.")
+
+    def print_register_report(self, register, products):
+        """Print a register report with product summary"""
+        import config
+
+        # Check if printing is available
+        try:
+            import win32print
+            if not config.ENABLE_PRINTING:
+                print("Printing disabled in config")
+                return
+        except ImportError:
+            print("win32print not available")
+            return
+
+        # ESC/POS commands
+        set_size_command = "\x1B\x4D\x00"
+        set_font_command = "\x1B\x21\x00"
+        bold_command = "\x1B\x45\x01"
+        title_command = "\x1B\x21\x30" + "\x1B\x45\x01"
+
+        # Build report
+        lines = [
+            title_command + f"    REGISTER REPORT #{register.id}",
+            "",
+            set_font_command + bold_command,
+            f"Shift:         {register.shift_type.title()}",
+            f"Employee:      {register.employee_name}",
+            f"Opened:        {register.opened_at}",
+            f"Closed:        {register.closed_at if not register.is_open else 'Still Open'}",
+            "",
+            "_____________________________________________",
+        ]
+
+        # Financial summary
+        total_sales = register.get_total_sales()
+        orders_count = register.get_orders_count()
+        expected_amount = register.get_expected_amount()
+
+        lines.extend([
+            f"Opening Amount:              {register.opening_amount:.2f}dt",
+            f"Total Orders:                {orders_count}",
+            f"Total Sales:                 {total_sales:.2f}dt",
+            f"Expected Cash:               {expected_amount:.2f}dt",
+        ])
+
+        if not register.is_open:
+            difference = register.get_difference()
+            sign = "+" if difference > 0 else ""
+            lines.extend([
+                f"Closing Amount:              {register.closing_amount:.2f}dt",
+                f"Difference:                  {sign}{difference:.2f}dt",
+            ])
+
+        lines.extend([
+            "_____________________________________________",
+            "",
+            bold_command + "PRODUCTS SOLD:",
+            "_____________________________________________",
+            "Product                         Quantity",
+            "_____________________________________________",
+        ])
+
+        # Add products sorted by quantity (descending)
+        total_items = 0
+        sorted_products = sorted(products.items(), key=lambda x: x[1], reverse=True)
+        for product_name, quantity in sorted_products:
+            total_items += quantity
+            # Truncate product name to 30 chars
+            product_display = product_name[:30].ljust(30)
+            quantity_display = str(quantity).rjust(8)
+            lines.append(f"{product_display}{quantity_display}")
+
+        lines.extend([
+            "_____________________________________________",
+            bold_command + f"Total Items Sold:               {total_items}",
+            "_____________________________________________",
+        ])
+
+        # Add notes if any
+        if register.notes:
+            lines.extend([
+                "",
+                "Notes:",
+                register.notes,
+            ])
+
+        report_text = "\n".join(lines)
+        report_data = set_size_command + report_text
+
+        # Add paper cut command at the end
+        cut_command = "\x1D\x56\x01"
+        cut_data = "\n\n\n\n\n" + cut_command
+
+        try:
+            hPrinter = win32print.OpenPrinter(config.PRINTER_NAME)
+            try:
+                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Register Report", None, "RAW"))
+                try:
+                    win32print.StartPagePrinter(hPrinter)
+                    win32print.WritePrinter(hPrinter, report_data.encode("utf-8"))
+                    win32print.WritePrinter(hPrinter, cut_data.encode("utf-8"))
+                    win32print.EndPagePrinter(hPrinter)
+                finally:
+                    win32print.EndDocPrinter(hPrinter)
+            finally:
+                win32print.ClosePrinter(hPrinter)
+        except Exception as e:
+            print(f"Error printing register report: {e}")
+
+    def print_combined_registers_report(self, registers, combined_products, total_sales, total_orders):
+        """Print a combined report for multiple registers with product summary"""
+        import config
+
+        # Check if printing is available
+        try:
+            import win32print
+            if not config.ENABLE_PRINTING:
+                print("Printing disabled in config")
+                return
+        except ImportError:
+            print("win32print not available")
+            return
+
+        # ESC/POS commands
+        set_size_command = "\x1B\x4D\x00"
+        set_font_command = "\x1B\x21\x00"
+        bold_command = "\x1B\x45\x01"
+        title_command = "\x1B\x21\x30" + "\x1B\x45\x01"
+
+        # Build report
+        lines = [
+            title_command + f"REGISTERS REPORT",
+            "",
+            set_font_command + bold_command,
+            f"Number of Registers: {len(registers)}",
+            "",
+            "_____________________________________________",
+        ]
+
+        # (Removed register details section as requested)
+
+        lines.extend([
+            "_____________________________________________",
+            "",
+            f"Total Orders:                {total_orders}",
+            f"Total Sales:                 {total_sales:.2f}dt",
+            "",
+            "_____________________________________________",
+            "",
+            bold_command + "PRODUCTS SOLD (COMBINED):",
+            "_____________________________________________",
+            "Product                         Quantity",
+            "_____________________________________________",
+        ])
+
+        # Add combined products sorted by quantity (descending)
+        total_items = 0
+        sorted_products = sorted(combined_products.items(), key=lambda x: x[1], reverse=True)
+        for product_name, quantity in sorted_products:
+            total_items += quantity
+            # Truncate product name to 30 chars
+            product_display = product_name[:30].ljust(30)
+            quantity_display = str(quantity).rjust(8)
+            lines.append(f"{product_display}{quantity_display}")
+
+        lines.extend([
+            "_____________________________________________",
+            bold_command + f"Total Items Sold:               {total_items}",
+            "_____________________________________________",
+        ])
+
+        report_text = "\n".join(lines)
+        report_data = set_size_command + report_text
+
+        # Add paper cut command at the end
+        cut_command = "\x1D\x56\x01"
+        cut_data = "\n\n\n\n\n" + cut_command
+
+        try:
+            hPrinter = win32print.OpenPrinter(config.PRINTER_NAME)
+            try:
+                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Combined Registers Report", None, "RAW"))
+                try:
+                    win32print.StartPagePrinter(hPrinter)
+                    win32print.WritePrinter(hPrinter, report_data.encode("utf-8"))
+                    win32print.WritePrinter(hPrinter, cut_data.encode("utf-8"))
+                    win32print.EndPagePrinter(hPrinter)
+                finally:
+                    win32print.EndDocPrinter(hPrinter)
+            finally:
+                win32print.ClosePrinter(hPrinter)
+        except Exception as e:
+            print(f"Error printing combined registers report: {e}")

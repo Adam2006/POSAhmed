@@ -11,12 +11,14 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 import config
 from models import Category, Product
+from translations import SETTINGS, COMMON, TOPPINGS
 
 
 class SettingsView(QWidget):
     """Settings page with admin access only"""
 
     settings_closed = pyqtSignal()
+    open_toppings_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -30,7 +32,7 @@ class SettingsView(QWidget):
         # Header
         header_layout = QHBoxLayout()
 
-        title_label = QLabel("Settings")
+        title_label = QLabel(SETTINGS['settings'])
         title_font = QFont()
         title_font.setPointSize(18)
         title_font.setBold(True)
@@ -39,7 +41,7 @@ class SettingsView(QWidget):
 
         header_layout.addStretch()
 
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(COMMON['close'])
         close_btn.setMinimumWidth(100)
         close_btn.clicked.connect(self.settings_closed.emit)
         header_layout.addWidget(close_btn)
@@ -52,23 +54,23 @@ class SettingsView(QWidget):
 
         # General settings tab
         self.general_tab = self.create_general_tab()
-        self.tab_widget.addTab(self.general_tab, "General")
+        self.tab_widget.addTab(self.general_tab, SETTINGS['general'])
 
         # Display settings tab
         self.display_tab = self.create_display_tab()
-        self.tab_widget.addTab(self.display_tab, "Display")
+        self.tab_widget.addTab(self.display_tab, SETTINGS['display'])
 
         # Printer settings tab
         self.printer_tab = self.create_printer_tab()
-        self.tab_widget.addTab(self.printer_tab, "Printer")
+        self.tab_widget.addTab(self.printer_tab, SETTINGS['printer'])
 
         # Products management tab
         self.products_tab = self.create_products_tab()
-        self.tab_widget.addTab(self.products_tab, "Products")
+        self.tab_widget.addTab(self.products_tab, SETTINGS['products'])
 
         # Data management tab
         self.data_tab = self.create_data_tab()
-        self.tab_widget.addTab(self.data_tab, "Data")
+        self.tab_widget.addTab(self.data_tab, SETTINGS['data'])
 
         layout.addWidget(self.tab_widget)
 
@@ -86,30 +88,30 @@ class SettingsView(QWidget):
         font.setPointSize(11)
 
         # Restaurant info
-        group = QGroupBox("Restaurant Information")
+        group = QGroupBox(SETTINGS['restaurant_info'])
         group.setFont(font)
         group_layout = QFormLayout()
 
         self.restaurant_name = QLineEdit(config.RESTAURANT_NAME)
         self.restaurant_name.setFont(font)
-        group_layout.addRow("Restaurant Name:", self.restaurant_name)
+        group_layout.addRow(f"{SETTINGS['restaurant_name']}:", self.restaurant_name)
 
         self.restaurant_phone = QLineEdit(config.RESTAURANT_PHONE)
         self.restaurant_phone.setFont(font)
-        group_layout.addRow("Phone Number:", self.restaurant_phone)
+        group_layout.addRow(f"{SETTINGS['phone_number']}:", self.restaurant_phone)
 
         group.setLayout(group_layout)
         layout.addWidget(group)
 
         # Admin password
-        group2 = QGroupBox("Security")
+        group2 = QGroupBox(SETTINGS['security'])
         group2.setFont(font)
         group2_layout = QFormLayout()
 
         self.admin_password = QLineEdit(config.ADMIN_PASSWORD)
         self.admin_password.setFont(font)
         self.admin_password.setEchoMode(QLineEdit.Password)
-        group2_layout.addRow("Admin Password:", self.admin_password)
+        group2_layout.addRow(f"{SETTINGS['admin_password']}:", self.admin_password)
 
         group2.setLayout(group2_layout)
         layout.addWidget(group2)
@@ -117,7 +119,7 @@ class SettingsView(QWidget):
         layout.addStretch()
 
         # Save button
-        save_btn = QPushButton("Save General Settings")
+        save_btn = QPushButton(SETTINGS['save_general'])
         save_btn.setProperty("class", "primary-button")
         save_btn.setFont(font)
         save_btn.setMinimumHeight(40)
@@ -135,7 +137,7 @@ class SettingsView(QWidget):
         font.setPointSize(11)
 
         # Grid settings
-        group = QGroupBox("Grid Layout")
+        group = QGroupBox("Configuration Grille")
         group.setFont(font)
         group_layout = QFormLayout()
 
@@ -144,21 +146,21 @@ class SettingsView(QWidget):
         self.category_columns.setMinimum(2)
         self.category_columns.setMaximum(8)
         self.category_columns.setValue(config.CATEGORY_GRID_COLUMNS)
-        group_layout.addRow("Category Columns:", self.category_columns)
+        group_layout.addRow("Colonnes Catégories:", self.category_columns)
 
         self.product_columns = QSpinBox()
         self.product_columns.setFont(font)
         self.product_columns.setMinimum(2)
         self.product_columns.setMaximum(8)
         self.product_columns.setValue(config.PRODUCT_GRID_COLUMNS)
-        group_layout.addRow("Product Columns:", self.product_columns)
+        group_layout.addRow("Colonnes Produits:", self.product_columns)
 
         self.product_rows = QSpinBox()
         self.product_rows.setFont(font)
         self.product_rows.setMinimum(2)
         self.product_rows.setMaximum(6)
         self.product_rows.setValue(config.PRODUCT_GRID_ROWS)
-        group_layout.addRow("Product Rows:", self.product_rows)
+        group_layout.addRow("Lignes Produits:", self.product_rows)
 
         group.setLayout(group_layout)
         layout.addWidget(group)
@@ -166,7 +168,7 @@ class SettingsView(QWidget):
         layout.addStretch()
 
         # Save button
-        save_btn = QPushButton("Save Display Settings")
+        save_btn = QPushButton("Enregistrer Paramètres Affichage")
         save_btn.setProperty("class", "primary-button")
         save_btn.setFont(font)
         save_btn.setMinimumWidth(20)
@@ -187,13 +189,13 @@ class SettingsView(QWidget):
         available_printers = self.get_available_printers()
 
         # Printer settings
-        group = QGroupBox("Printer Configuration")
+        group = QGroupBox(SETTINGS['printer_config'])
         group.setFont(font)
         group_layout = QFormLayout()
 
         self.enable_printing = QCheckBox()
         self.enable_printing.setChecked(config.ENABLE_PRINTING)
-        group_layout.addRow("Enable Printing:", self.enable_printing)
+        group_layout.addRow(f"{SETTINGS['enable_printing']}:", self.enable_printing)
 
         # Customer printer dropdown
         self.printer_name = QComboBox()
@@ -201,7 +203,7 @@ class SettingsView(QWidget):
         self.printer_name.addItems(available_printers)
         if config.PRINTER_NAME in available_printers:
             self.printer_name.setCurrentText(config.PRINTER_NAME)
-        group_layout.addRow("Customer Printer:", self.printer_name)
+        group_layout.addRow(f"{SETTINGS['customer_printer']}:", self.printer_name)
 
         # Kitchen printer dropdown
         self.kitchen_printer_name = QComboBox()
@@ -209,7 +211,7 @@ class SettingsView(QWidget):
         self.kitchen_printer_name.addItems(available_printers)
         if config.KITCHEN_PRINTER_NAME in available_printers:
             self.kitchen_printer_name.setCurrentText(config.KITCHEN_PRINTER_NAME)
-        group_layout.addRow("Kitchen Printer:", self.kitchen_printer_name)
+        group_layout.addRow(f"{SETTINGS['kitchen_printer']}:", self.kitchen_printer_name)
 
         group.setLayout(group_layout)
         layout.addWidget(group)
@@ -217,7 +219,7 @@ class SettingsView(QWidget):
         layout.addStretch()
 
         # Save button
-        save_btn = QPushButton("Save Printer Settings")
+        save_btn = QPushButton(SETTINGS['save_printer'])
         save_btn.setProperty("class", "primary-button")
         save_btn.setFont(font)
         save_btn.setMinimumHeight(40)
@@ -231,9 +233,9 @@ class SettingsView(QWidget):
         try:
             import win32print
             printers = [printer[2] for printer in win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
-            return printers if printers else ["No printers found"]
+            return printers if printers else [SETTINGS['no_printers']]
         except ImportError:
-            return ["win32print not available"]
+            return ["win32print non disponible"]
         except Exception as e:
             return [f"Error: {str(e)}"]
 
@@ -248,7 +250,7 @@ class SettingsView(QWidget):
         # Category selection
         category_layout = QHBoxLayout()
 
-        category_label = QLabel("Category:")
+        category_label = QLabel(f"{SETTINGS['category']}:")
         category_label.setFont(font)
         category_layout.addWidget(category_label)
 
@@ -261,28 +263,34 @@ class SettingsView(QWidget):
         category_layout.addStretch()
 
         # Add/Edit/Delete Category buttons
-        add_category_btn = QPushButton("+ New Category")
+        add_category_btn = QPushButton(SETTINGS['new_category'])
         add_category_btn.setFont(font)
         add_category_btn.clicked.connect(self.add_category)
         category_layout.addWidget(add_category_btn)
 
-        edit_category_btn = QPushButton("Edit Category")
+        edit_category_btn = QPushButton(SETTINGS['edit_category'])
         edit_category_btn.setFont(font)
         edit_category_btn.clicked.connect(self.edit_category)
         category_layout.addWidget(edit_category_btn)
 
-        delete_category_btn = QPushButton("Delete Category")
+        delete_category_btn = QPushButton(SETTINGS['delete_category'])
         delete_category_btn.setProperty("class", "danger-button")
         delete_category_btn.setFont(font)
         delete_category_btn.clicked.connect(self.delete_category)
         category_layout.addWidget(delete_category_btn)
+
+        # Toppings button
+        toppings_btn = QPushButton(TOPPINGS['manage_toppings'])
+        toppings_btn.setFont(font)
+        toppings_btn.clicked.connect(self.open_toppings_management)
+        category_layout.addWidget(toppings_btn)
 
         layout.addLayout(category_layout)
 
         # Products table
         self.products_table = QTableWidget()
         self.products_table.setColumnCount(4)
-        self.products_table.setHorizontalHeaderLabels(["Product Name", "Price (dt)", "Status", "Actions"])
+        self.products_table.setHorizontalHeaderLabels([SETTINGS['product_name'], SETTINGS['price_dt'], SETTINGS['status'], SETTINGS['actions']])
         self.products_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
         self.products_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.products_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -294,7 +302,7 @@ class SettingsView(QWidget):
         layout.addWidget(self.products_table)
 
         # Add product button
-        add_product_btn = QPushButton("+ Add New Product")
+        add_product_btn = QPushButton(SETTINGS['new_product'])
         add_product_btn.setProperty("class", "primary-button")
         add_product_btn.setFont(font)
         add_product_btn.setMinimumHeight(40)
@@ -311,7 +319,7 @@ class SettingsView(QWidget):
         self.category_combo.clear()
         categories = Category.get_all(active_only=False)
         for category in categories:
-            status_text = " (Inactive)" if not category.is_active else ""
+            status_text = f" ({SETTINGS['inactive']})" if not category.is_active else ""
             self.category_combo.addItem(f"{category.name}{status_text}", category.id)
 
         if self.category_combo.count() > 0:
@@ -340,7 +348,7 @@ class SettingsView(QWidget):
             self.products_table.setItem(row, 1, price_item)
 
             # Status
-            status_item = QTableWidgetItem("Active" if product.is_active else "Inactive")
+            status_item = QTableWidgetItem(SETTINGS['active'] if product.is_active else SETTINGS['inactive'])
             self.products_table.setItem(row, 2, status_item)
 
             # Actions buttons
@@ -349,7 +357,7 @@ class SettingsView(QWidget):
             actions_layout.setContentsMargins(5, 5, 5, 5)
             actions_layout.setSpacing(15)
 
-            edit_btn = QPushButton("Edit")
+            edit_btn = QPushButton(SETTINGS['edit'])
             edit_btn.setMinimumHeight(30)
             edit_btn.setMaximumHeight(30)
             edit_btn.setMinimumWidth(80)
@@ -357,7 +365,7 @@ class SettingsView(QWidget):
             edit_btn.clicked.connect(lambda checked, p=product: self.edit_product(p))
             actions_layout.addWidget(edit_btn)
 
-            toggle_btn = QPushButton("Deactivate" if product.is_active else "Activate")
+            toggle_btn = QPushButton("Désactiver" if product.is_active else "Activer")
             toggle_btn.setMinimumHeight(30)
             toggle_btn.setMaximumHeight(30)
             toggle_btn.setMinimumWidth(80)
@@ -365,7 +373,7 @@ class SettingsView(QWidget):
             toggle_btn.clicked.connect(lambda checked, p=product: self.toggle_product_status(p))
             actions_layout.addWidget(toggle_btn)
 
-            delete_btn = QPushButton("Delete")
+            delete_btn = QPushButton(SETTINGS['delete'])
             delete_btn.setProperty("class", "danger-button")
             delete_btn.setMinimumHeight(30)
             delete_btn.setMaximumHeight(30)
@@ -389,8 +397,11 @@ class SettingsView(QWidget):
                 is_active=data['is_active']
             )
             category.save()
+            # Save topping group associations
+            topping_group_ids = dialog.get_selected_topping_groups()
+            category.set_topping_groups(topping_group_ids)
             self.refresh_categories()
-            QMessageBox.information(self, "Success", "Category added successfully!")
+            QMessageBox.information(self, COMMON['success'], "Catégorie ajoutée avec succès!")
 
     def edit_category(self):
         """Edit selected category"""
@@ -409,14 +420,17 @@ class SettingsView(QWidget):
             category.name = data['name']
             category.is_active = data['is_active']
             category.save()
+            # Save topping group associations
+            topping_group_ids = dialog.get_selected_topping_groups()
+            category.set_topping_groups(topping_group_ids)
             self.refresh_categories()
-            QMessageBox.information(self, "Success", "Category updated successfully!")
+            QMessageBox.information(self, COMMON['success'], "Catégorie mise à jour avec succès!")
 
     def add_product(self):
         """Add new product"""
         category_id = self.category_combo.currentData()
         if category_id is None:
-            QMessageBox.warning(self, "No Category", "Please select a category first.")
+            QMessageBox.warning(self, "Aucune Catégorie", "Veuillez sélectionner une catégorie d'abord.")
             return
 
         from .product_edit_dialog import ProductEditDialog
@@ -431,8 +445,11 @@ class SettingsView(QWidget):
                 image_path=data['image_path']
             )
             product.save()
+            # Save topping group associations
+            topping_group_ids = dialog.get_selected_topping_groups()
+            product.set_topping_groups(topping_group_ids)
             self.load_products_for_category()
-            QMessageBox.information(self, "Success", "Product added successfully!")
+            QMessageBox.information(self, COMMON['success'], "Produit ajouté avec succès!")
 
     def edit_product(self, product):
         """Edit existing product"""
@@ -445,8 +462,11 @@ class SettingsView(QWidget):
             product.is_active = data['is_active']
             product.image_path = data['image_path']
             product.save()
+            # Save topping group associations
+            topping_group_ids = dialog.get_selected_topping_groups()
+            product.set_topping_groups(topping_group_ids)
             self.load_products_for_category()
-            QMessageBox.information(self, "Success", "Product updated successfully!")
+            QMessageBox.information(self, COMMON['success'], "Produit mis à jour avec succès!")
 
     def toggle_product_status(self, product):
         """Toggle product active status"""
@@ -458,8 +478,8 @@ class SettingsView(QWidget):
         """Delete a product"""
         reply = QMessageBox.question(
             self,
-            "Delete Product",
-            f"Are you sure you want to delete '{product.name}'?\nThis action cannot be undone.",
+            SETTINGS['delete'],
+            f"Êtes-vous sûr de vouloir supprimer '{product.name}'?\nCette action ne peut pas être annulée.",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -467,7 +487,7 @@ class SettingsView(QWidget):
         if reply == QMessageBox.Yes:
             product.delete()
             self.load_products_for_category()
-            QMessageBox.information(self, "Success", "Product deleted successfully!")
+            QMessageBox.information(self, COMMON['success'], SETTINGS['product_deleted'])
 
     def delete_category(self):
         """Delete selected category"""
@@ -486,10 +506,10 @@ class SettingsView(QWidget):
             # Ask if user wants to delete category with all its products
             reply = QMessageBox.question(
                 self,
-                "Delete Category with Products",
-                f"Category '{category.name}' has {len(products)} product(s).\n\n"
-                f"Do you want to delete the category and ALL its products?\n"
-                f"This action cannot be undone!",
+                SETTINGS['confirm_delete'],
+                f"{SETTINGS['delete_category_msg']} '{category.name}' a {len(products)} produit(s).\n\n"
+                f"{SETTINGS['delete_products_too']}\n"
+                f"Cette action ne peut pas être annulée!",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
             )
@@ -497,13 +517,13 @@ class SettingsView(QWidget):
             if reply == QMessageBox.Yes:
                 category.delete(delete_products=True)
                 self.refresh_categories()
-                QMessageBox.information(self, "Success", f"Category and {len(products)} product(s) deleted successfully!")
+                QMessageBox.information(self, COMMON['success'], f"{SETTINGS['category_deleted']} et {len(products)} produit(s) supprimés avec succès!")
         else:
             # Category has no products, simple deletion
             reply = QMessageBox.question(
                 self,
-                "Delete Category",
-                f"Are you sure you want to delete category '{category.name}'?\nThis action cannot be undone.",
+                SETTINGS['confirm_delete'],
+                f"Êtes-vous sûr de vouloir supprimer la catégorie '{category.name}'?\nCette action ne peut pas être annulée.",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
             )
@@ -511,7 +531,7 @@ class SettingsView(QWidget):
             if reply == QMessageBox.Yes:
                 category.delete()
                 self.refresh_categories()
-                QMessageBox.information(self, "Success", "Category deleted successfully!")
+                QMessageBox.information(self, COMMON['success'], SETTINGS['category_deleted'])
 
     def create_data_tab(self):
         """Create data management tab"""
@@ -522,7 +542,7 @@ class SettingsView(QWidget):
         font.setPointSize(11)
 
         # Database info
-        group = QGroupBox("Database Information")
+        group = QGroupBox("Informations Base de Données")
         group.setFont(font)
         group_layout = QVBoxLayout()
 
@@ -531,9 +551,9 @@ class SettingsView(QWidget):
         products = Product.get_all(active_only=False)
 
         info_label = QLabel(
-            f"Categories: {len(categories)}\n"
-            f"Products: {len(products)}\n"
-            f"Database: {config.DATABASE_PATH}"
+            f"Catégories: {len(categories)}\n"
+            f"Produits: {len(products)}\n"
+            f"Base de données: {config.DATABASE_PATH}"
         )
         info_label.setFont(font)
         group_layout.addWidget(info_label)
@@ -542,19 +562,19 @@ class SettingsView(QWidget):
         layout.addWidget(group)
 
         # Data operations
-        group2 = QGroupBox("Data Operations")
+        group2 = QGroupBox("Opérations de Données")
         group2.setFont(font)
         group2_layout = QVBoxLayout()
 
         # Import button
-        import_btn = QPushButton("Import from menu.json")
+        import_btn = QPushButton("Importer depuis menu.json")
         import_btn.setFont(font)
         import_btn.setMinimumHeight(40)
         import_btn.clicked.connect(self.import_from_json)
         group2_layout.addWidget(import_btn)
 
         # Create sample data button
-        sample_btn = QPushButton("Create Sample Data")
+        sample_btn = QPushButton("Créer Données d'Exemple")
         sample_btn.setFont(font)
         sample_btn.setMinimumHeight(40)
         sample_btn.clicked.connect(self.create_sample_data)
@@ -578,9 +598,9 @@ class SettingsView(QWidget):
             # Write to config.py
             self.update_config_file()
 
-            QMessageBox.information(self, "Success", "General settings saved successfully!")
+            QMessageBox.information(self, COMMON['success'], "Paramètres généraux enregistrés avec succès!")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
+            QMessageBox.critical(self, COMMON['error'], f"Échec de l'enregistrement des paramètres: {e}")
 
     def save_display_settings(self):
         """Save display settings to config file"""
@@ -593,11 +613,11 @@ class SettingsView(QWidget):
             self.update_config_file()
 
             QMessageBox.information(
-                self, "Success",
-                "Display settings saved!\nPlease restart the application for changes to take effect."
+                self, COMMON['success'],
+                "Paramètres d'affichage enregistrés!\nVeuillez redémarrer l'application pour que les modifications prennent effet."
             )
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
+            QMessageBox.critical(self, COMMON['error'], f"Échec de l'enregistrement des paramètres: {e}")
 
     def save_printer_settings(self):
         """Save printer settings to config file"""
@@ -608,9 +628,9 @@ class SettingsView(QWidget):
 
             self.update_config_file()
 
-            QMessageBox.information(self, "Success", "Printer settings saved successfully!")
+            QMessageBox.information(self, COMMON['success'], "Paramètres imprimante enregistrés avec succès!")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
+            QMessageBox.critical(self, COMMON['error'], f"Échec de l'enregistrement des paramètres: {e}")
 
     def update_config_file(self):
         """Update the config.py file with current values"""
@@ -679,21 +699,21 @@ os.makedirs(ICONS_DIR, exist_ok=True)
 
             if os.path.exists("menu.json"):
                 reply = QMessageBox.question(
-                    self, "Confirm Import",
-                    "This will import data from menu.json. Continue?",
+                    self, "Confirmer Importation",
+                    "Ceci va importer les données depuis menu.json. Continuer?",
                     QMessageBox.Yes | QMessageBox.No
                 )
 
                 if reply == QMessageBox.Yes:
                     migrate_from_json("menu.json")
                     QMessageBox.information(
-                        self, "Success",
-                        "Data imported successfully!\nPlease restart the application."
+                        self, COMMON['success'],
+                        "Données importées avec succès!\nVeuillez redémarrer l'application."
                     )
             else:
-                QMessageBox.warning(self, "File Not Found", "menu.json not found in application directory.")
+                QMessageBox.warning(self, "Fichier Non Trouvé", "menu.json introuvable dans le répertoire de l'application.")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to import data: {e}")
+            QMessageBox.critical(self, COMMON['error'], f"Échec de l'importation des données: {e}")
 
     def create_sample_data(self):
         """Create sample data"""
@@ -701,16 +721,20 @@ os.makedirs(ICONS_DIR, exist_ok=True)
             from utils.migrate_data import create_sample_data
 
             reply = QMessageBox.question(
-                self, "Confirm",
-                "This will create sample data. Continue?",
+                self, COMMON['confirm'],
+                "Ceci va créer des données d'exemple. Continuer?",
                 QMessageBox.Yes | QMessageBox.No
             )
 
             if reply == QMessageBox.Yes:
                 create_sample_data()
                 QMessageBox.information(
-                    self, "Success",
-                    "Sample data created successfully!\nPlease restart the application."
+                    self, COMMON['success'],
+                    "Données d'exemple créées avec succès!\nVeuillez redémarrer l'application."
                 )
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to create sample data: {e}")
+            QMessageBox.critical(self, COMMON['error'], f"Échec de la création des données d'exemple: {e}")
+
+    def open_toppings_management(self):
+        """Emit signal to open toppings management"""
+        self.open_toppings_requested.emit()

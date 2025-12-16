@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 from PyQt5.QtGui import QFont, QColor
 from models import Order, Register
+from translations import HISTORY, COMMON
 
 
 class ReprintDialog(QDialog):
@@ -300,11 +301,8 @@ class HistoryView(QWidget):
         self.orders_table.setHorizontalHeaderLabels([
             "Order #", "Date", "Time", "Items", "Total (dt)", "Type", "Reprints"
         ])
-        # Set table to fit content width (sum of all column widths)
-        self.orders_table.horizontalHeader().setStretchLastSection(False)
-        self.orders_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.orders_table.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.orders_table.setMaximumWidth(800)  # Set maximum width to prevent stretching
+        # Set all columns to stretch equally across full table width
+        self.orders_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.orders_table.verticalHeader().setVisible(False)
         self.orders_table.setFont(font)
         self.orders_table.setEditTriggers(QTableWidget.NoEditTriggers)

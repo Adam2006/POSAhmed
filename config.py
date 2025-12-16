@@ -24,8 +24,8 @@ PRODUCTS_PER_PAGE = 12
 
 # Printer settings
 ENABLE_PRINTING = True
-PRINTER_NAME = "Microsoft Print to PDF"
-KITCHEN_PRINTER_NAME = "Microsoft Print to PDF"
+PRINTER_NAME = "EPSON TM-T20X Receipt"
+KITCHEN_PRINTER_NAME = "EPSON TM-T20X Receipt"
 
 # Order settings
 ORDER_RESET_TIME = "02:30"

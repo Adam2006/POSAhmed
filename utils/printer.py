@@ -49,12 +49,13 @@ def print_customer_receipt(order):
 
     # Add order items
     for item in order.items:
-        product_text = ' '.join(item.product_name.split(' '))
-        # Ensure numeric values for calculation
+        # Compose product display: category + product
+        category = getattr(item, 'category_name', '')
+        product_text = ((category + ' ') if category else '') + ' '.join(item.product_name.split(' '))
         quantity = int(item.quantity)
         final_price = float(item.final_price)
         unit_price = final_price / quantity
-        line = f"{product_text.ljust(35)}{('x'+str(quantity))}{unit_price:.2f}dt".rjust(8)
+        line = f"{product_text.ljust(33)}x{quantity}  {unit_price:.2f}dt".rjust(8)
         lines.append(line)
 
         # Add notes if any
@@ -67,7 +68,7 @@ def print_customer_receipt(order):
         "",
         "_______________________________________________",
         "",
-        title_command + f"          Total: {total:.2f}dt",
+        title_command + f"     Total: {total:.2f}dt",
     ])
 
     ticket_text = "\n".join(lines)
@@ -112,11 +113,19 @@ def print_kitchen_receipt(order):
     ]
 
     for item in order.items:
-        product_line = f"{item.quantity}  {item.product_name}"
+        category = getattr(item, 'category_name', '')
+        product_line = f"{item.quantity} {((category + ' ') if category else '')}{item.product_name}"
         lines.append(product_line)
 
+        # Add toppings on separate lines under the product
+        toppings = getattr(item, 'toppings', None)
+        if toppings:
+            for group_options in toppings.values():
+                for option in group_options:
+                    lines.append(f"   + {option['name']}")
+
         if item.notes:
-            lines.append(f"   {item.notes}")
+            lines.append(f"   Note: {item.notes}")
 
         lines.append("")
 

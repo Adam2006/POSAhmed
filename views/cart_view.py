@@ -9,6 +9,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 import config
 from models import Client
+from translations import CART, COMMON
 
 
 class CartView(QWidget):
@@ -32,7 +33,7 @@ class CartView(QWidget):
         layout.setSpacing(10)
 
         # Order number header
-        self.order_label = QLabel(f"Order N°: {self.order_controller.get_current_order_number()}")
+        self.order_label = QLabel(f"Commande N°: {self.order_controller.get_current_order_number()}")
         self.order_label.setProperty("class", "header-label")
         font = QFont()
         font.setPointSize(16)
@@ -55,7 +56,7 @@ class CartView(QWidget):
         layout.addWidget(scroll, stretch=1)
 
         # Total label
-        self.total_label = QLabel("Total: 0.00dt")
+        self.total_label = QLabel(f"{CART['total']}: 0.00dt")
         self.total_label.setProperty("class", "total-label")
         font.setPointSize(18)
         self.total_label.setFont(font)
@@ -64,7 +65,7 @@ class CartView(QWidget):
 
         # Client selection
         client_layout = QHBoxLayout()
-        client_label = QLabel("Client:")
+        client_label = QLabel(f"{CART['client']}:")
         client_font = QFont()
         client_font.setPointSize(12)
         client_label.setFont(client_font)
@@ -72,19 +73,19 @@ class CartView(QWidget):
 
         self.client_combo = QComboBox()
         self.client_combo.setFont(client_font)
-        self.client_combo.addItem("Cash Sale (No Client)", None)
+        self.client_combo.addItem(CART['no_client'], None)
         self.load_clients()
         client_layout.addWidget(self.client_combo, stretch=1)
         layout.addLayout(client_layout)
 
         # Delivery checkbox
-        self.delivery_checkbox = QCheckBox("  Delivery?")
+        self.delivery_checkbox = QCheckBox(f"  {CART['delivery']}?")
         self.delivery_checkbox.setFont(font)
         self.delivery_checkbox.stateChanged.connect(self.on_delivery_changed)
         layout.addWidget(self.delivery_checkbox)
 
         # Checkout button
-        self.checkout_btn = QPushButton("Print Receipt")
+        self.checkout_btn = QPushButton(CART['checkout'])
         self.checkout_btn.setProperty("class", "primary-button")
         font.setPointSize(18)
         font.setBold(True)
@@ -112,10 +113,10 @@ class CartView(QWidget):
 
         # Update total
         total = self.order_controller.get_total()
-        self.total_label.setText(f"Total: {total:.2f}dt")
+        self.total_label.setText(f"{CART['total']}: {total:.2f}dt")
 
         # Update order number
-        self.order_label.setText(f"Order N°: {self.order_controller.get_current_order_number()}")
+        self.order_label.setText(f"Commande N°: {self.order_controller.get_current_order_number()}")
 
     def create_cart_item_widget(self, item, index):
         """Create widget for a cart item"""
@@ -175,7 +176,7 @@ class CartView(QWidget):
 
         # Notes row (if any)
         if item.get('notes'):
-            notes_label = QLabel(f"Note: {item['notes']}")
+            notes_label = QLabel(f"{COMMON['notes']}: {item['notes']}")
             notes_font = QFont()
             notes_font.setPointSize(8)
             notes_font.setItalic(True)
@@ -233,7 +234,7 @@ class CartView(QWidget):
 
         # Clear and reload
         self.client_combo.clear()
-        self.client_combo.addItem("Cash Sale (No Client)", None)
+        self.client_combo.addItem(CART['no_client'], None)
         self.load_clients()
 
         # Restore selection if client still exists

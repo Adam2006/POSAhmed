@@ -234,9 +234,14 @@ class Order:
         """Load order items from database"""
         if self.id:
             db = get_db()
-            cursor = db.execute(
-                "SELECT * FROM order_items WHERE order_id = ?", (self.id,)
-            )
+            cursor = db.execute("""
+                SELECT oi.*,
+                       c.name as category_name
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_name = p.name
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE oi.order_id = ?
+            """, (self.id,))
             self.items = []
             for row in cursor.fetchall():
                 item = OrderItem(
@@ -249,6 +254,8 @@ class Order:
                     final_price=row['final_price'],
                     notes=row['notes']
                 )
+                # Add category name as attribute for printing
+                item.category_name = row['category_name'] if row['category_name'] else ''
                 self.items.append(item)
 
     def delete(self):

@@ -97,6 +97,21 @@ class Employee:
         self.is_active = False
         self.save()
 
+    def hard_delete(self):
+        """Permanently delete employee and all related data from database"""
+        if self.id:
+            db = get_db()
+            # Delete related expenses
+            db.execute("DELETE FROM employee_expenses WHERE employee_id = ?", (self.id,))
+            # Delete related days off
+            db.execute("DELETE FROM employee_days_off WHERE employee_id = ?", (self.id,))
+            # Delete the employee
+            db.execute("DELETE FROM employees WHERE id = ?", (self.id,))
+            db.commit()
+            invalidate_cache('Employee')
+            invalidate_cache('EmployeeExpense')
+            invalidate_cache('EmployeeDayOff')
+
     def get_total_expenses(self, start_date=None, end_date=None):
         """Get total expenses for this employee"""
         if not self.id:

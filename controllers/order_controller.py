@@ -22,19 +22,34 @@ class OrderController:
         # Return the next order number (current last_order_number + 1)
         return current_register.last_order_number + 1
 
-    def add_item(self, product, quantity=1, notes='', category_name=''):
+    def add_item(self, product, quantity=1, notes='', category_name='', toppings=None, custom_price=None):
         """Add a product to the cart (always creates new item, never combines)"""
+        # Use custom price if provided (includes toppings), otherwise use product price
+        unit_price = custom_price if custom_price is not None else product.price
+
+        # Build display name for cart (with toppings inline)
+        display_name = product.name
+        if toppings:
+            topping_names = []
+            for group_options in toppings.values():
+                for option in group_options:
+                    topping_names.append(option['name'])
+            if topping_names:
+                display_name += f" ({', '.join(topping_names)})"
+
         # Always add new item - each click creates a separate cart item
         cart_item = {
             'product_id': product.id,
-            'name': product.name,
+            'name': display_name,  # Display name for cart (includes toppings)
+            'base_name': product.name,  # Original product name without toppings
             'category_name': category_name,
             'quantity': quantity,
-            'unit_price': product.price,
+            'unit_price': unit_price,
             'original_price': product.price,  # Store original price for comparison
             'discount': 0.0,
-            'final_price': product.price * quantity,
-            'notes': notes
+            'final_price': unit_price * quantity,
+            'notes': notes,
+            'toppings': toppings  # Store toppings data
         }
         self.cart_items.append(cart_item)
 
@@ -117,13 +132,17 @@ class OrderController:
 
         # Add items to order
         for cart_item in self.cart_items:
+            # Use base_name for customer receipt (no toppings), full name for display
             order_item = OrderItem(
-                product_name=cart_item['name'],
+                product_name=cart_item.get('base_name', cart_item['name']),
                 quantity=cart_item['quantity'],
                 unit_price=cart_item['unit_price'],
                 discount=cart_item['discount'],
                 notes=cart_item['notes']
             )
+            # Add category name and toppings as attributes for printing
+            order_item.category_name = cart_item.get('category_name', '')
+            order_item.toppings = cart_item.get('toppings')  # Store toppings for kitchen receipt
             order_item.calculate_final_price()
             order.add_item(order_item)
 

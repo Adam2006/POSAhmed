@@ -8,5 +8,6 @@ from .order import Order, OrderItem
 from .register import Register
 from .employee import Employee, EmployeeExpense, EmployeeDayOff
 from .client import Client
+from .topping import ToppingGroup, ToppingOption
 
-__all__ = ['Database', 'get_db', 'Category', 'Product', 'Order', 'OrderItem', 'Register', 'Employee', 'EmployeeExpense', 'EmployeeDayOff', 'Client']
+__all__ = ['Database', 'get_db', 'Category', 'Product', 'Order', 'OrderItem', 'Register', 'Employee', 'EmployeeExpense', 'EmployeeDayOff', 'Client', 'ToppingGroup', 'ToppingOption']

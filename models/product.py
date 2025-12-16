@@ -114,5 +114,56 @@ class Product:
         """Delete product from database"""
         if self.id:
             db = get_db()
+            # Delete topping group associations
+            db.execute("DELETE FROM product_topping_groups WHERE product_id = ?", (self.id,))
+            # Delete product
             db.execute("DELETE FROM products WHERE id = ?", (self.id,))
             db.commit()
+
+    def get_topping_groups(self):
+        """Get all topping groups associated with this product"""
+        if not self.id:
+            return []
+
+        from .topping import ToppingGroup
+        db = get_db()
+        cursor = db.execute("""
+            SELECT tg.*
+            FROM topping_groups tg
+            INNER JOIN product_topping_groups ptg ON tg.id = ptg.topping_group_id
+            WHERE ptg.product_id = ?
+            ORDER BY tg.display_order, tg.name
+        """, (self.id,))
+
+        groups = []
+        for row in cursor.fetchall():
+            groups.append(ToppingGroup(
+                id=row['id'],
+                name=row['name'],
+                display_order=row['display_order'],
+                is_active=bool(row['is_active'])
+            ))
+        return groups
+
+    def set_topping_groups(self, topping_group_ids):
+        """Set which topping groups are available for this product
+
+        Args:
+            topping_group_ids: List of topping group IDs
+        """
+        if not self.id:
+            return
+
+        db = get_db()
+
+        # Remove all existing associations
+        db.execute("DELETE FROM product_topping_groups WHERE product_id = ?", (self.id,))
+
+        # Add new associations
+        for group_id in topping_group_ids:
+            db.execute(
+                "INSERT INTO product_topping_groups (product_id, topping_group_id) VALUES (?, ?)",
+                (self.id, group_id)
+            )
+
+        db.commit()

@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 import config
+from translations import ADMIN, COMMON
 
 
 class AdminAuthDialog(QDialog):
@@ -15,7 +16,7 @@ class AdminAuthDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Admin Authentication")
+        self.setWindowTitle(ADMIN['admin_auth'])
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(350)
 
@@ -30,7 +31,7 @@ class AdminAuthDialog(QDialog):
         font.setPointSize(12)
 
         # Title
-        title_label = QLabel("Enter Admin Password")
+        title_label = QLabel(ADMIN['enter_password'])
         title_font = QFont()
         title_font.setPointSize(14)
         title_font.setBold(True)
@@ -39,14 +40,14 @@ class AdminAuthDialog(QDialog):
         layout.addWidget(title_label)
 
         # Password field
-        password_label = QLabel("Password:")
+        password_label = QLabel(ADMIN['password'] + ":")
         password_label.setFont(font)
         layout.addWidget(password_label)
 
         self.password_input = QLineEdit()
         self.password_input.setFont(font)
         self.password_input.setEchoMode(QLineEdit.Password)
-        self.password_input.setPlaceholderText("Enter admin password")
+        self.password_input.setPlaceholderText(ADMIN['enter_password'])
         self.password_input.returnPressed.connect(self.validate_password)
         layout.addWidget(self.password_input)
 
@@ -61,13 +62,13 @@ class AdminAuthDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(COMMON['cancel'])
         cancel_btn.setFont(font)
         cancel_btn.setMinimumWidth(100)
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
-        login_btn = QPushButton("Login")
+        login_btn = QPushButton(ADMIN['login'])
         login_btn.setProperty("class", "primary-button")
         login_btn.setFont(font)
         login_btn.setMinimumWidth(100)
@@ -83,6 +84,6 @@ class AdminAuthDialog(QDialog):
         if entered_password == config.ADMIN_PASSWORD:
             self.accept()
         else:
-            self.error_label.setText("Incorrect password!")
+            self.error_label.setText(ADMIN['incorrect_password'])
             self.password_input.clear()
             self.password_input.setFocus()

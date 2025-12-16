@@ -17,10 +17,13 @@ from views.history_view import HistoryView
 from views.statistics_view import StatisticsView
 from views.employee_view import EmployeeView
 from views.client_view import ClientView
+from views.toppings_view import ToppingsView
+from views.topping_selection_dialog import ToppingSelectionDialog
 from views.register_dialog import OpenRegisterDialog, CloseRegisterDialog
 from views.admin_auth_dialog import AdminAuthDialog
 from controllers.order_controller import OrderController
 from utils.memory_optimizer import get_optimizer
+from translations import MAIN_WINDOW
 
 
 class MainWindow(QMainWindow):
@@ -122,7 +125,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(self.register_status_label)
 
         # Register button
-        self.register_btn = QPushButton("Open Register")
+        self.register_btn = QPushButton(MAIN_WINDOW['open_register'])
         self.register_btn.setMaximumWidth(140)
         self.register_btn.setMinimumHeight(40)
         btn_font = QFont()
@@ -132,7 +135,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(self.register_btn)
 
         # History button
-        history_btn = QPushButton("📊 History")
+        history_btn = QPushButton(MAIN_WINDOW['history'])
         history_btn.setMaximumWidth(120)
         history_btn.setMinimumHeight(40)
         history_btn.setFont(btn_font)
@@ -140,7 +143,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(history_btn)
 
         # Statistics button (admin only)
-        statistics_btn = QPushButton("📈 Statistics")
+        statistics_btn = QPushButton(MAIN_WINDOW['statistics'])
         statistics_btn.setMaximumWidth(140)
         statistics_btn.setMinimumHeight(40)
         statistics_btn.setFont(btn_font)
@@ -148,7 +151,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(statistics_btn)
 
         # Employees button (admin only)
-        employees_btn = QPushButton("👥 Employees")
+        employees_btn = QPushButton(MAIN_WINDOW['employees'])
         employees_btn.setMaximumWidth(140)
         employees_btn.setMinimumHeight(40)
         employees_btn.setFont(btn_font)
@@ -156,7 +159,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(employees_btn)
 
         # Clients button (admin only)
-        clients_btn = QPushButton("💳 Clients")
+        clients_btn = QPushButton(MAIN_WINDOW['clients'])
         clients_btn.setMaximumWidth(120)
         clients_btn.setMinimumHeight(40)
         clients_btn.setFont(btn_font)
@@ -164,7 +167,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(clients_btn)
 
         # Settings button (top right)
-        settings_btn = QPushButton("⚙ Settings")
+        settings_btn = QPushButton(MAIN_WINDOW['settings'])
         settings_btn.setMaximumWidth(120)
         settings_btn.setMinimumHeight(40)
         settings_btn.setFont(btn_font)
@@ -196,6 +199,7 @@ class MainWindow(QMainWindow):
         # Settings view
         self.settings_view = SettingsView()
         self.settings_view.settings_closed.connect(self.close_settings)
+        self.settings_view.open_toppings_requested.connect(self.open_toppings)
         self.stacked_widget.addWidget(self.settings_view)
 
         # History view
@@ -217,6 +221,11 @@ class MainWindow(QMainWindow):
         self.client_view = ClientView()
         self.client_view.client_view_closed.connect(self.close_clients)
         self.stacked_widget.addWidget(self.client_view)
+
+        # Toppings view
+        self.toppings_view = ToppingsView()
+        self.toppings_view.toppings_closed.connect(self.close_toppings)
+        self.stacked_widget.addWidget(self.toppings_view)
 
         # Show main view by default
         self.stacked_widget.setCurrentIndex(0)
@@ -243,8 +252,35 @@ class MainWindow(QMainWindow):
     def on_product_selected(self, product):
         """Handle product selection"""
         category_name = self.current_category.name if hasattr(self, 'current_category') else ''
-        self.order_controller.add_item(product, category_name=category_name)
-        self.cart_view.refresh()
+
+        # Check if product or its category has topping groups
+        topping_groups = product.get_topping_groups()
+
+        # If product doesn't have topping groups, check category
+        if not topping_groups and hasattr(self, 'current_category') and self.current_category:
+            topping_groups = self.current_category.get_topping_groups()
+
+        if topping_groups:
+            # Show topping selection dialog
+            category = self.current_category if hasattr(self, 'current_category') else None
+            dialog = ToppingSelectionDialog(product, category, self)
+            if dialog.exec_() == dialog.Accepted:
+                # Get selected toppings and total price
+                selected_toppings = dialog.get_selected_toppings()
+                total_price = dialog.get_total_price()
+
+                # Add item with toppings
+                self.order_controller.add_item(
+                    product,
+                    category_name=category_name,
+                    toppings=selected_toppings,
+                    custom_price=total_price
+                )
+                self.cart_view.refresh()
+        else:
+            # No toppings - add directly
+            self.order_controller.add_item(product, category_name=category_name)
+            self.cart_view.refresh()
 
     def on_checkout(self, is_delivery, delivery_data):
         """Handle checkout"""
@@ -255,7 +291,7 @@ class MainWindow(QMainWindow):
             if success:
                 self.cart_view.refresh()
         except Exception as e:
-            QMessageBox.critical(self, "Checkout Error", str(e))
+            QMessageBox.critical(self, MAIN_WINDOW['checkout_error'], str(e))
             # If no register is open, prompt to open one
             if "No register" in str(e):
                 self.toggle_register()
@@ -329,6 +365,17 @@ class MainWindow(QMainWindow):
         # Refresh client list in cart view
         self.cart_view.refresh_clients()
 
+    def open_toppings(self):
+        """Open toppings management page"""
+        # Refresh topping data before showing
+        self.toppings_view.load_groups()
+        # Switch to toppings view
+        self.stacked_widget.setCurrentIndex(6)
+
+    def close_toppings(self):
+        """Close toppings and return to main view"""
+        self.stacked_widget.setCurrentIndex(0)
+
     def check_register(self):
         """Check if a register is open and update UI accordingly"""
         self.current_register = Register.get_current_register()
@@ -338,13 +385,13 @@ class MainWindow(QMainWindow):
         """Update register-related UI elements"""
         if self.current_register:
             # Register is open
-            self.register_btn.setText("Close Register")
-            self.register_status_label.setText("Register Open")
+            self.register_btn.setText(MAIN_WINDOW['close_register'])
+            self.register_status_label.setText(MAIN_WINDOW['register_open'])
             self.register_status_label.setStyleSheet("color: #2d5016; font-weight: bold;")
         else:
             # No register open
-            self.register_btn.setText("Open Register")
-            self.register_status_label.setText("⚠ No Register Open")
+            self.register_btn.setText(MAIN_WINDOW['open_register'])
+            self.register_status_label.setText(MAIN_WINDOW['no_register_open'])
             self.register_status_label.setStyleSheet("color: #8d2020; font-weight: bold;")
 
     def toggle_register(self):
@@ -357,8 +404,8 @@ class MainWindow(QMainWindow):
                 self.current_register.close_register(data['closing_amount'], data['notes'])
                 QMessageBox.information(
                     self,
-                    "Register Closed",
-                    f"Register closed successfully.\n\nDifference: {self.current_register.get_difference():.2f} dt"
+                    MAIN_WINDOW['register_closed'],
+                    f"Register closed successfully.\n\n{MAIN_WINDOW['difference']}: {self.current_register.get_difference():.2f} dt"
                 )
                 self.current_register = None
                 self.update_register_ui()
@@ -370,7 +417,8 @@ class MainWindow(QMainWindow):
 
                 # Validate employee name
                 if not data['employee_name']:
-                    QMessageBox.warning(self, "Invalid Input", "Please enter an employee name.")
+                    from translations import REGISTER
+                    QMessageBox.warning(self, REGISTER['invalid_input'], REGISTER['enter_employee'])
                     return
 
                 # Create new register
@@ -384,7 +432,7 @@ class MainWindow(QMainWindow):
                 self.update_register_ui()
                 QMessageBox.information(
                     self,
-                    "Register Opened",
+                    MAIN_WINDOW['register_opened'],
                     f"Register opened for {data['shift_type']} shift.\nEmployee: {data['employee_name']}"
                 )
 

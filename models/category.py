@@ -96,6 +96,57 @@ class Category:
                 # Delete all products in this category first
                 db.execute("DELETE FROM products WHERE category_id = ?", (self.id,))
 
+            # Delete topping group associations
+            db.execute("DELETE FROM category_topping_groups WHERE category_id = ?", (self.id,))
+
             # Delete the category
             db.execute("DELETE FROM categories WHERE id = ?", (self.id,))
             db.commit()
+
+    def get_topping_groups(self):
+        """Get all topping groups associated with this category"""
+        if not self.id:
+            return []
+
+        from .topping import ToppingGroup
+        db = get_db()
+        cursor = db.execute("""
+            SELECT tg.*
+            FROM topping_groups tg
+            INNER JOIN category_topping_groups ctg ON tg.id = ctg.topping_group_id
+            WHERE ctg.category_id = ?
+            ORDER BY tg.display_order, tg.name
+        """, (self.id,))
+
+        groups = []
+        for row in cursor.fetchall():
+            groups.append(ToppingGroup(
+                id=row['id'],
+                name=row['name'],
+                display_order=row['display_order'],
+                is_active=bool(row['is_active'])
+            ))
+        return groups
+
+    def set_topping_groups(self, topping_group_ids):
+        """Set which topping groups are available for this category
+
+        Args:
+            topping_group_ids: List of topping group IDs
+        """
+        if not self.id:
+            return
+
+        db = get_db()
+
+        # Remove all existing associations
+        db.execute("DELETE FROM category_topping_groups WHERE category_id = ?", (self.id,))
+
+        # Add new associations
+        for group_id in topping_group_ids:
+            db.execute(
+                "INSERT INTO category_topping_groups (category_id, topping_group_id) VALUES (?, ?)",
+                (self.id, group_id)
+            )
+
+        db.commit()

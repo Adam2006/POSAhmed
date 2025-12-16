@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from models import Register
+from translations import REGISTER, COMMON
 
 
 class OpenRegisterDialog(QDialog):
@@ -16,7 +17,7 @@ class OpenRegisterDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Open Register")
+        self.setWindowTitle(REGISTER['open_register'])
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(450)
         self.setup_ui()
@@ -30,7 +31,7 @@ class OpenRegisterDialog(QDialog):
         font.setPointSize(12)
 
         # Title
-        title_label = QLabel("Open New Register")
+        title_label = QLabel(REGISTER['open_register'])
         title_font = QFont()
         title_font.setPointSize(16)
         title_font.setBold(True)
@@ -44,11 +45,11 @@ class OpenRegisterDialog(QDialog):
         # Employee name
         self.employee_input = QLineEdit()
         self.employee_input.setFont(font)
-        self.employee_input.setPlaceholderText("Enter employee name")
-        form_layout.addRow("Employee Name:", self.employee_input)
+        self.employee_input.setPlaceholderText(REGISTER['employee_name'])
+        form_layout.addRow(REGISTER['employee_name'] + ":", self.employee_input)
 
         # Shift type
-        shift_label = QLabel("Shift Type:")
+        shift_label = QLabel(REGISTER['shift_type'] + ":")
         shift_label.setFont(font)
         form_layout.addRow(shift_label)
 
@@ -57,13 +58,13 @@ class OpenRegisterDialog(QDialog):
         shift_layout.setContentsMargins(0, 0, 0, 0)
 
         self.shift_group = QButtonGroup()
-        self.morning_radio = QRadioButton("Morning")
+        self.morning_radio = QRadioButton(REGISTER['morning'])
         self.morning_radio.setFont(font)
         self.morning_radio.setChecked(True)
         self.shift_group.addButton(self.morning_radio)
         shift_layout.addWidget(self.morning_radio)
 
-        self.evening_radio = QRadioButton("Evening")
+        self.evening_radio = QRadioButton(REGISTER['evening'])
         self.evening_radio.setFont(font)
         self.shift_group.addButton(self.evening_radio)
         shift_layout.addWidget(self.evening_radio)
@@ -79,7 +80,7 @@ class OpenRegisterDialog(QDialog):
         self.opening_amount_input.setMaximum(999999.99)
         self.opening_amount_input.setSuffix(" dt")
         self.opening_amount_input.setValue(0.0)
-        form_layout.addRow("Opening Amount:", self.opening_amount_input)
+        form_layout.addRow(REGISTER['opening_amount'] + ":", self.opening_amount_input)
 
         layout.addLayout(form_layout)
 
@@ -94,14 +95,14 @@ class OpenRegisterDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(COMMON['cancel'])
         cancel_btn.setFont(font)
         cancel_btn.setMinimumWidth(120)
         cancel_btn.setMinimumHeight(40)
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
-        open_btn = QPushButton("Open Register")
+        open_btn = QPushButton(REGISTER['open'])
         open_btn.setProperty("class", "primary-button")
         open_btn.setFont(font)
         open_btn.setMinimumWidth(150)
@@ -126,7 +127,7 @@ class CloseRegisterDialog(QDialog):
     def __init__(self, register, parent=None):
         super().__init__(parent)
         self.register = register
-        self.setWindowTitle("Close Register")
+        self.setWindowTitle(REGISTER['close_register'])
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(500)
         self.setup_ui()
@@ -140,7 +141,8 @@ class CloseRegisterDialog(QDialog):
         font.setPointSize(12)
 
         # Title
-        title_label = QLabel(f"Close Register - {self.register.shift_type.title()} Shift")
+        shift_type = REGISTER['morning'] if self.register.shift_type == 'morning' else REGISTER['evening']
+        title_label = QLabel(f"{REGISTER['close_register']} - {shift_type}")
         title_font = QFont()
         title_font.setPointSize(16)
         title_font.setBold(True)
@@ -148,7 +150,7 @@ class CloseRegisterDialog(QDialog):
         layout.addWidget(title_label)
 
         # Register info
-        info_label = QLabel(f"Employee: {self.register.employee_name}\nOpened: {self.register.opened_at}")
+        info_label = QLabel(f"{REGISTER['employee_name']}: {self.register.employee_name}\n{COMMON['date']}: {self.register.opened_at}")
         info_label.setFont(font)
         info_label.setStyleSheet("padding: 10px; background-color: #3a3a3a; border-radius: 5px;")
         layout.addWidget(info_label)
@@ -161,8 +163,8 @@ class CloseRegisterDialog(QDialog):
         summary_label = QLabel(
             f"Total Orders: {orders_count}\n"
             f"Total Sales: {total_sales:.2f} dt\n"
-            f"Opening Amount: {self.register.opening_amount:.2f} dt\n"
-            f"Expected Cash: {expected_amount:.2f} dt"
+            f"{REGISTER['opening_amount']}: {self.register.opening_amount:.2f} dt\n"
+            f"{REGISTER['expected_amount']}: {expected_amount:.2f} dt"
         )
         summary_font = QFont()
         summary_font.setPointSize(13)
@@ -184,23 +186,23 @@ class CloseRegisterDialog(QDialog):
         self.closing_amount_input.setSuffix(" dt")
         self.closing_amount_input.setValue(expected_amount)
         self.closing_amount_input.valueChanged.connect(self.update_difference)
-        form_layout.addRow("Actual Closing Amount:", self.closing_amount_input)
+        form_layout.addRow(REGISTER['closing_amount'] + ":", self.closing_amount_input)
 
         # Difference
         self.difference_label = QLabel("0.00 dt")
         self.difference_label.setFont(font)
-        form_layout.addRow("Difference:", self.difference_label)
+        form_layout.addRow(REGISTER['difference'] + ":", self.difference_label)
 
         layout.addLayout(form_layout)
 
         # Notes
-        notes_label = QLabel("Notes (Optional):")
+        notes_label = QLabel(REGISTER['notes'] + ":")
         notes_label.setFont(font)
         layout.addWidget(notes_label)
 
         self.notes_input = QTextEdit()
         self.notes_input.setFont(font)
-        self.notes_input.setPlaceholderText("Enter any notes or comments about this shift...")
+        self.notes_input.setPlaceholderText(REGISTER['notes'] + "...")
         self.notes_input.setMaximumHeight(80)
         layout.addWidget(self.notes_input)
 
@@ -211,14 +213,14 @@ class CloseRegisterDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(COMMON['cancel'])
         cancel_btn.setFont(font)
         cancel_btn.setMinimumWidth(120)
         cancel_btn.setMinimumHeight(40)
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
-        close_btn = QPushButton("Close Register")
+        close_btn = QPushButton(REGISTER['close_and_save'])
         close_btn.setProperty("class", "danger-button")
         close_btn.setFont(font)
         close_btn.setMinimumWidth(150)
@@ -246,12 +248,12 @@ class CloseRegisterDialog(QDialog):
         difference = actual - expected
 
         if abs(difference) > 0.01:  # If there's a difference
-            msg = f"There is a difference of {difference:.2f} dt between expected and actual amount.\n\n"
-            msg += "Do you want to proceed with closing the register?"
+            msg = f"{REGISTER['difference']}: {difference:.2f} dt\n\n"
+            msg += f"{COMMON['confirm']}?"
 
             reply = QMessageBox.question(
                 self,
-                "Confirm Close Register",
+                REGISTER['close_register'],
                 msg,
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No

@@ -204,6 +204,63 @@ class Database:
         # Create indexes for clients
         self.execute("CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_clients_active ON clients(is_active)")
+
+        # Topping groups table (e.g., "Meat", "Sauces", "Pasta Type")
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS topping_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                display_order INTEGER DEFAULT 0,
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Topping options table (e.g., "Chicken", "Beef" under "Meat" group)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS topping_options (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                group_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                price REAL DEFAULT 0.0,
+                display_order INTEGER DEFAULT 0,
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (group_id) REFERENCES topping_groups(id)
+            )
+        """)
+
+        # Category-topping groups relation (which topping groups are available for a category)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS category_topping_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category_id INTEGER NOT NULL,
+                topping_group_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES categories(id),
+                FOREIGN KEY (topping_group_id) REFERENCES topping_groups(id),
+                UNIQUE(category_id, topping_group_id)
+            )
+        """)
+
+        # Product-topping groups relation (which topping groups are available for a product)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS product_topping_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER NOT NULL,
+                topping_group_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES products(id),
+                FOREIGN KEY (topping_group_id) REFERENCES topping_groups(id),
+                UNIQUE(product_id, topping_group_id)
+            )
+        """)
+
+        # Create indexes for toppings
+        self.execute("CREATE INDEX IF NOT EXISTS idx_topping_options_group ON topping_options(group_id)")
+        self.execute("CREATE INDEX IF NOT EXISTS idx_category_toppings_category ON category_topping_groups(category_id)")
+        self.execute("CREATE INDEX IF NOT EXISTS idx_product_toppings_product ON product_topping_groups(product_id)")
+
         self.commit()
 
         # Initialize default settings

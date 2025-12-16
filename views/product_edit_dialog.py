@@ -3,10 +3,12 @@ Dialogs for editing products and categories
 """
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QHBoxLayout, QFormLayout, QCheckBox, QDoubleSpinBox
+    QPushButton, QHBoxLayout, QFormLayout, QCheckBox, QDoubleSpinBox,
+    QGroupBox, QScrollArea, QWidget
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+from models import ToppingGroup
 
 
 class CategoryEditDialog(QDialog):
@@ -49,6 +51,37 @@ class CategoryEditDialog(QDialog):
 
         layout.addLayout(form_layout)
 
+        # Topping groups section
+        topping_group_box = QGroupBox("Available Topping Groups")
+        topping_group_box.setFont(font)
+        topping_layout = QVBoxLayout(topping_group_box)
+
+        # Get all topping groups
+        all_groups = ToppingGroup.get_all(active_only=True)
+
+        # Get current category's topping groups
+        current_group_ids = []
+        if self.category and self.category.id:
+            current_groups = self.category.get_topping_groups()
+            current_group_ids = [g.id for g in current_groups]
+
+        # Create checkboxes for each topping group
+        self.topping_checkboxes = {}
+        if all_groups:
+            for group in all_groups:
+                checkbox = QCheckBox(group.name)
+                checkbox.setFont(font)
+                checkbox.setChecked(group.id in current_group_ids)
+                self.topping_checkboxes[group.id] = checkbox
+                topping_layout.addWidget(checkbox)
+        else:
+            no_groups_label = QLabel("No topping groups available. Create them in Settings > Toppings.")
+            no_groups_label.setFont(font)
+            no_groups_label.setStyleSheet("color: #888;")
+            topping_layout.addWidget(no_groups_label)
+
+        layout.addWidget(topping_group_box)
+
         # Buttons
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -74,6 +107,14 @@ class CategoryEditDialog(QDialog):
             'name': self.name_input.text().strip(),
             'is_active': self.active_checkbox.isChecked()
         }
+
+    def get_selected_topping_groups(self):
+        """Get list of selected topping group IDs"""
+        selected_ids = []
+        for group_id, checkbox in self.topping_checkboxes.items():
+            if checkbox.isChecked():
+                selected_ids.append(group_id)
+        return selected_ids
 
 
 class ProductEditDialog(QDialog):
@@ -140,6 +181,37 @@ class ProductEditDialog(QDialog):
             self.image_input.setText(self.product.image_path)
         layout.addWidget(self.image_input)
 
+        # Topping groups section
+        topping_group_box = QGroupBox("Available Topping Groups")
+        topping_group_box.setFont(font)
+        topping_layout = QVBoxLayout(topping_group_box)
+
+        # Get all topping groups
+        all_groups = ToppingGroup.get_all(active_only=True)
+
+        # Get current product's topping groups
+        current_group_ids = []
+        if self.product and self.product.id:
+            current_groups = self.product.get_topping_groups()
+            current_group_ids = [g.id for g in current_groups]
+
+        # Create checkboxes for each topping group
+        self.topping_checkboxes = {}
+        if all_groups:
+            for group in all_groups:
+                checkbox = QCheckBox(group.name)
+                checkbox.setFont(font)
+                checkbox.setChecked(group.id in current_group_ids)
+                self.topping_checkboxes[group.id] = checkbox
+                topping_layout.addWidget(checkbox)
+        else:
+            no_groups_label = QLabel("No topping groups available. Create them in Settings > Toppings.")
+            no_groups_label.setFont(font)
+            no_groups_label.setStyleSheet("color: #888;")
+            topping_layout.addWidget(no_groups_label)
+
+        layout.addWidget(topping_group_box)
+
         # Buttons
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -169,3 +241,11 @@ class ProductEditDialog(QDialog):
             'is_active': self.active_checkbox.isChecked(),
             'image_path': self.image_input.text().strip()
         }
+
+    def get_selected_topping_groups(self):
+        """Get list of selected topping group IDs"""
+        selected_ids = []
+        for group_id, checkbox in self.topping_checkboxes.items():
+            if checkbox.isChecked():
+                selected_ids.append(group_id)
+        return selected_ids

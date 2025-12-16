@@ -453,7 +453,7 @@ class EmployeeView(QWidget):
         view_expenses_btn.clicked.connect(self.view_expenses)
         action_buttons_layout.addWidget(view_expenses_btn)
 
-        delete_employee_btn = QPushButton("🗑 Deactivate")
+        delete_employee_btn = QPushButton("🗑 Delete")
         delete_employee_btn.setStyleSheet("background-color: #8d2020;")
         delete_employee_btn.setFont(font)
         delete_employee_btn.setMinimumHeight(40)
@@ -692,31 +692,35 @@ class EmployeeView(QWidget):
         self.refresh_table()
 
     def deactivate_employee(self):
-        """Deactivate selected employee"""
+        """Delete selected employee permanently"""
         selected_rows = self.employees_table.selectionModel().selectedRows()
         if not selected_rows:
-            QMessageBox.warning(self, "No Selection", "Please select an employee to deactivate.")
+            QMessageBox.warning(self, "No Selection", "Please select an employee to delete.")
             return
 
         row = selected_rows[0].row()
         employee = self.employees[row]
 
-        if not employee.is_active:
-            QMessageBox.information(self, "Already Inactive", f"Employee '{employee.name}' is already inactive.")
-            return
-
         reply = QMessageBox.question(
             self,
-            "Confirm Deactivation",
-            f"Are you sure you want to deactivate '{employee.name}'?\n\nThis will not delete the employee or their expense records.",
+            "Confirm Deletion",
+            f"Are you sure you want to permanently delete '{employee.name}'?\n\n"
+            f"⚠ WARNING: This will permanently delete:\n"
+            f"- The employee record\n"
+            f"- All expense records\n"
+            f"- All day-off records\n\n"
+            f"This action CANNOT be undone!",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
 
         if reply == QMessageBox.Yes:
-            employee.delete()
-            QMessageBox.information(self, "Success", f"Employee '{employee.name}' has been deactivated.")
-            self.load_employees()
+            try:
+                employee.hard_delete()
+                QMessageBox.information(self, "Success", f"Employee '{employee.name}' has been permanently deleted.")
+                self.load_employees()
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to delete employee:\n{str(e)}")
 
 
 class EmployeeExpensesDialog(QDialog):
