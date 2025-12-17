@@ -13,6 +13,9 @@ Modern Point of Sale system for restaurants built with PyQt5 and SQLite.
 - **SQLite Database** - Persistent data storage
 - **Modern Dark UI** - Professional styling with QSS
 - **Data Migration** - Import from old JSON format or create sample data
+- **Number Pad for Editing Quantities/Discounts** - EditItemDialog allows quantity/price/discount changes
+- **Sales History and Reporting** - Full order history and statistics views, with register/product summaries
+- **Product/Category Management UI** - Add, edit, and delete products and categories from the UI
 
 ### 📋 Not Included in Prototype
 - Table management (removed for simplicity)
@@ -85,29 +88,55 @@ Edit [config.py](config.py) to customize:
 
 ## 💾 Database
 
-The SQLite database ([data/restaurant.db](data/restaurant.db)) contains:
-- Categories and Products
-- Orders and Order Items
-- Settings (order counter, etc.)
+The SQLite database is located at `data/restaurant.db`.
+- Contains: Categories, Products, Orders, Order Items, Settings
 
 **Backup**: Simply copy the `restaurant.db` file!
 
-## 📊 Data Migration
+## 📊 Data Migration & Menu Management
 
-### From Old JSON Format
-If you have a `menu.json` file from the old system:
+### Importing Menu from JSON
+If you have a `menu.json` file (see below for the new format):
 ```bash
 python utils/migrate_data.py menu.json
 ```
+
+### Clearing All Menu Data
+To completely remove all products and categories from the database:
+```bash
+python clear_menu.py
+```
+This will wipe the menu (products & categories) from `data/restaurant.db`.
+
+### Re-importing Menu
+After clearing, you can re-import your menu from `menu.json` as above.
 
 ### Create Sample Data
 ```bash
 python utils/migrate_data.py --sample
 ```
 
+### Example menu.json Format
+```json
+{
+  "categories": [
+    {
+      "name": "tabouna",
+      "status": "Active",
+      "products": [
+        {"name": "Escalope", "price": 7.5, "status": "Active", "description": "", "image": ""},
+        {"name": "Chawarma", "price": 7.5, "status": "Active", "description": "", "image": ""}
+      ]
+    },
+    ...
+  ]
+}
+```
+For a full example, see the provided `menu.json` in this repository.
+
 ## 🖨️ Printing
 
-The system supports ESC/POS thermal printers.
+The system supports ESC/POS thermal printers (Windows only).
 
 **Configure printers in [config.py](config.py):**
 - `PRINTER_NAME` - Customer receipt printer
@@ -149,14 +178,20 @@ pyinstaller --onefile --windowed main.py
 ## 🛠️ Next Steps
 
 Future enhancements could include:
-- Number pad for editing quantities/discounts
-- Sales history and reporting
-- Product/category management UI
 - Table management (for dine-in)
 - Split payments
 - Inventory tracking
-- User authentication
+- User authentication (beyond admin password)
 - Analytics dashboard
+
+## 🐞 Troubleshooting
+
+### QWindowsWindow::setGeometry Warning
+If you see a warning like:
+```
+QWindowsWindow::setGeometry: Unable to set geometry ...
+```
+This means the requested window size does not fit your screen. The app will still work, but you can adjust your screen resolution or edit the window sizing code in `views/main_window.py` if needed.
 
 ## 📝 License
 
