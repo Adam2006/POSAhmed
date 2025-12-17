@@ -81,7 +81,7 @@ Edit [config.py](config.py) to customize:
 - **Restaurant Info** - Name, phone number
 - **Order Reset Time** - Daily order counter reset (default: 02:30)
 - **UI Theme** - Colors and styling
-- **Admin Password** - Default: "ab65"
+- **Admin Password** - Default: ""
 
 ## 💾 Database
 
