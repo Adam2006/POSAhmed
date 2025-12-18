@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QColor
 from models import Order, Register, get_db
+from views.custom_report_dialog import CustomReportDialog
+from translations import STATISTICS
 
 
 class RegisterDetailDialog(QDialog):
@@ -270,6 +272,12 @@ class StatisticsView(QWidget):
         print_all_btn.setMinimumHeight(40)
         print_all_btn.clicked.connect(self.print_all_shown_registers)
         action_buttons_layout.addWidget(print_all_btn)
+
+        print_custom_btn = QPushButton(STATISTICS['custom_report'])
+        print_custom_btn.setFont(font)
+        print_custom_btn.setMinimumHeight(40)
+        print_custom_btn.clicked.connect(self.print_custom_report)
+        action_buttons_layout.addWidget(print_custom_btn)
 
         layout.addLayout(action_buttons_layout)
 
@@ -754,3 +762,184 @@ class StatisticsView(QWidget):
                 win32print.ClosePrinter(hPrinter)
         except Exception as e:
             print(f"Error printing combined registers report: {e}")
+
+    def print_custom_report(self):
+        """Print custom filtered register report"""
+        from PyQt5.QtWidgets import QMessageBox
+
+        # Determine which registers to use
+        selected_rows = self.registers_table.selectionModel().selectedRows()
+
+        if selected_rows:
+            # Single register selected
+            row = selected_rows[0].row()
+            register = self.registers[row]
+
+            # Show dialog for single register
+            dialog = CustomReportDialog(register=register, parent=self)
+            if dialog.exec_() != QDialog.Accepted:
+                return
+
+            # Get filter configuration
+            filter_config = dialog.get_filter_config()
+
+            # Get products for this register
+            products = self.get_register_product_summary(register)
+
+            # Apply filters
+            filtered_products = self.apply_product_filters(products, filter_config)
+
+            if not filtered_products:
+                QMessageBox.information(self, "No Data", "No products match the selected filters.")
+                return
+
+            # Print filtered register report
+            self.print_register_report(register, filtered_products)
+            QMessageBox.information(self, "Success", "Custom register report sent to printer.")
+
+        else:
+            # No selection - use all shown registers
+            if not self.all_registers:
+                QMessageBox.warning(self, "No Data", "No registers to print.")
+                return
+
+            # Show dialog for all registers
+            dialog = CustomReportDialog(registers=self.all_registers, parent=self)
+            if dialog.exec_() != QDialog.Accepted:
+                return
+
+            # Get filter configuration
+            filter_config = dialog.get_filter_config()
+
+            # Combine products from all registers - FILTER FIRST, THEN COMBINE
+            combined_products = {}
+            total_sales = 0
+            total_orders = 0
+
+            for register in self.all_registers:
+                # Get products for this register
+                products = self.get_register_product_summary(register)
+                print(f"\n>>> Register {register.id} RAW products from DB:")
+                for p, q in sorted(products.items()):
+                    if 'jambon' in p.lower():
+                        print(f"  {p}: {q}")
+
+                # Apply filters WITHOUT adding total lines yet (pass skip_totals flag)
+                filter_config_no_totals = filter_config.copy()
+                filter_config_no_totals['skip_totals'] = True
+                filtered_products_for_register = self.apply_product_filters(products, filter_config_no_totals)
+
+                print(f">>> Register {register.id} AFTER filtering:")
+                for p, q in sorted(filtered_products_for_register.items()):
+                    print(f"  {p}: {q}")
+
+                # Sum up only the filtered products
+                print(f">>> Combining into combined_products:")
+                for product_name, quantity in filtered_products_for_register.items():
+                    old_val = combined_products.get(product_name, 0)
+                    new_val = old_val + quantity
+                    combined_products[product_name] = new_val
+                    print(f"  {product_name}: {old_val} + {quantity} = {new_val}")
+
+                # Sum up sales and orders (still sum all, as we want total register stats)
+                total_sales += register.get_total_sales()
+                total_orders += register.get_orders_count()
+
+            if not combined_products:
+                QMessageBox.information(self, "No Data", "No products match the selected filters.")
+                return
+
+            # Now add the TOTAL lines for keywords AFTER combining
+            if filter_config.get('keywords'):
+                keywords = filter_config['keywords']
+                keyword_totals = {kw: 0 for kw in keywords}
+
+                # Calculate totals from combined products
+                for product_name, quantity in combined_products.items():
+                    for kw in keywords:
+                        if kw.lower() in product_name.lower():
+                            keyword_totals[kw] += quantity
+
+                # DEBUG: Print what we're about to send to printer
+                print("\n=== FINAL COMBINED PRODUCTS ===")
+                for product_name, quantity in sorted(combined_products.items()):
+                    print(f"{product_name}: {quantity}")
+                print(f"\nKeyword totals: {keyword_totals}")
+                print("================================\n")
+
+                # Add total lines
+                for keyword, total in keyword_totals.items():
+                    if total > 0:
+                        combined_products[f"═══ TOTAL {keyword.upper()}: ═══"] = total
+
+            # Print filtered combined report
+            self.print_combined_registers_report(self.all_registers, combined_products, total_sales, total_orders)
+            QMessageBox.information(self, "Success", f"Custom combined report for {len(self.all_registers)} registers sent to printer.")
+
+    def apply_product_filters(self, products, filter_config):
+        """Apply category and keyword filters to products dict
+
+        If keywords are provided, shows both individual products AND totals by keyword
+        to track ingredient/stock usage across all product types.
+        """
+        selected_categories = filter_config['categories']
+        keywords = filter_config['keywords']
+        all_categories = filter_config['all_categories']
+        skip_totals = filter_config.get('skip_totals', False)  # Flag to skip adding total lines
+
+        filtered_products = {}
+
+        # If keywords are provided, show individual products + totals by keyword
+        if keywords:
+            # Track totals for each keyword
+            keyword_totals = {kw: 0 for kw in keywords}
+
+            # First pass: add individual products that match keywords
+            for product_display, quantity in products.items():
+                # Check if product matches any keyword
+                matches_keyword = any(kw.lower() in product_display.lower() for kw in keywords)
+
+                if matches_keyword:
+                    # Check category filter
+                    parts = product_display.split(' ', 1)
+                    if len(parts) == 2:
+                        category_name = parts[0]
+                    else:
+                        category_name = ''
+
+                    category_match = all_categories or (category_name in selected_categories) or (not category_name and len(selected_categories) > 0)
+
+                    if category_match:
+                        # Add individual product
+                        filtered_products[product_display] = quantity
+
+                        # Add to keyword totals
+                        for kw in keywords:
+                            if kw.lower() in product_display.lower():
+                                keyword_totals[kw] += quantity
+
+            # Second pass: add total lines for each keyword (if there were matches)
+            # Only add totals if skip_totals is False (for single register or final combined report)
+            if not skip_totals:
+                for keyword, total in keyword_totals.items():
+                    if total > 0:
+                        # Add a summary line with the keyword total
+                        filtered_products[f"═══ TOTAL {keyword.upper()}: ═══"] = total
+
+        else:
+            # No keywords - use normal category filtering (show all products in category)
+            for product_display, quantity in products.items():
+                parts = product_display.split(' ', 1)
+
+                if len(parts) == 2:
+                    category_name = parts[0]
+                else:
+                    category_name = ''
+
+                # Check category filter
+                category_match = all_categories or (category_name in selected_categories) or (not category_name and len(selected_categories) > 0)
+
+                if category_match:
+                    filtered_products[product_display] = quantity
+
+        return filtered_products

@@ -160,6 +160,15 @@ STATISTICS = {
     'print_report': 'Imprimer Rapport',
     'register_report': 'Rapport de Caisse',
     'combined_report': 'Rapport Combiné',
+    'custom_report': 'Rapport Personnalisé',
+    'filter_options': 'Options de Filtre',
+    'filter_by_category': 'Filtrer par Catégorie',
+    'filter_by_keyword': 'Filtrer par Mot-clé',
+    'select_categories': 'Sélectionner Catégories',
+    'enter_keywords': 'Entrer Mots-clés',
+    'keywords_help': 'Séparer par virgules (ex: chawarma, mayonnaise)',
+    'all_categories': 'Toutes les Catégories',
+    'generate_report': 'Générer Rapport',
 }
 
 # Employee view
