@@ -132,16 +132,26 @@ class OrderController:
 
         # Add items to order
         for cart_item in self.cart_items:
-            # Use base_name for customer receipt (no toppings), full name for display
+            # Build product name with category prefix for database storage
+            base_name = cart_item.get('base_name', cart_item['name'])
+            category_name = cart_item.get('category_name', '')
+
+            # Store as "CategoryName ProductName" in database for proper reporting
+            if category_name:
+                product_name_for_db = f"{category_name} {base_name}"
+            else:
+                product_name_for_db = base_name
+
             order_item = OrderItem(
-                product_name=cart_item.get('base_name', cart_item['name']),
+                product_name=product_name_for_db,
                 quantity=cart_item['quantity'],
                 unit_price=cart_item['unit_price'],
                 discount=cart_item['discount'],
                 notes=cart_item['notes']
             )
             # Add category name and toppings as attributes for printing
-            order_item.category_name = cart_item.get('category_name', '')
+            order_item.category_name = category_name
+            order_item.base_name = base_name  # Store base name for receipts
             order_item.toppings = cart_item.get('toppings')  # Store toppings for kitchen receipt
             order_item.calculate_final_price()
             order.add_item(order_item)

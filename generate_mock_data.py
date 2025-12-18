@@ -102,14 +102,18 @@ def generate_random_order_items(product_list, min_items=1, max_items=5):
         if random.random() < 0.2:
             discount = random.choice([0.5, 1.0, 1.5, 2.0])
 
+        # Build product name with category prefix for database storage
+        product_name_for_db = f"{category.name} {product.name}"
+
         item = OrderItem(
-            product_name=product.name,
+            product_name=product_name_for_db,
             quantity=quantity,
             unit_price=product.price,
             discount=discount,
             notes=''
         )
         item.category_name = category.name
+        item.base_name = product.name  # Store base name for receipts
         item.calculate_final_price()
         items.append(item)
 

@@ -49,9 +49,8 @@ def print_customer_receipt(order):
 
     # Add order items
     for item in order.items:
-        # Compose product display: category + product
-        category = getattr(item, 'category_name', '')
-        product_text = ((category + ' ') if category else '') + ' '.join(item.product_name.split(' '))
+        # For customer receipt, show full product name with category for clear instructions
+        product_text = item.product_name
         quantity = int(item.quantity)
         final_price = float(item.final_price)
         unit_price = final_price / quantity
@@ -113,8 +112,15 @@ def print_kitchen_receipt(order):
     ]
 
     for item in order.items:
+        # For kitchen receipt, use base_name (without category prefix in product_name)
+        base_name = getattr(item, 'base_name', None)
+        if not base_name:
+            # Legacy: extract base name from "Category ProductName" format
+            parts = item.product_name.split(' ', 1)
+            base_name = parts[1] if len(parts) == 2 else item.product_name
+
         category = getattr(item, 'category_name', '')
-        product_line = f"{item.quantity} {((category + ' ') if category else '')}{item.product_name}"
+        product_line = f"{item.quantity} {((category + ' ') if category else '')}{base_name}"
         lines.append(product_line)
 
         # Add toppings on separate lines under the product

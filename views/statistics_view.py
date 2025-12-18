@@ -476,31 +476,31 @@ class StatisticsView(QWidget):
         dialog.exec_()
 
     def get_register_product_summary(self, register):
-        """Get product summary for a register grouped by product type"""
+        """Get product summary for a register grouped by product type
+
+        Note: order_items.product_name already contains the full product name
+        (e.g., "Makloub jambon", "Sandwich jambon") so we just sum by that.
+        We don't need to join with products table.
+        """
         db = get_db()
 
-        # Get all order items for orders in this register with category names
+        # Get all order items for orders in this register
+        # Simply group by the product_name as stored in order_items
         cursor = db.execute("""
             SELECT oi.product_name,
-                   c.name as category_name,
                    SUM(oi.quantity) as total_quantity
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.id
-            LEFT JOIN products p ON oi.product_name = p.name
-            LEFT JOIN categories c ON p.category_id = c.id
             WHERE o.register_id = ?
-            GROUP BY oi.product_name, c.name
-            ORDER BY c.name, oi.product_name
+            GROUP BY oi.product_name
+            ORDER BY oi.product_name
         """, (register.id,))
 
         products = {}
         for row in cursor.fetchall():
-            category_name = row['category_name'] if row['category_name'] else ''
             product_name = row['product_name']
             total_quantity = row['total_quantity']
-
-            product_display = f"{category_name} {product_name}" if category_name else product_name
-            products[product_display] = total_quantity
+            products[product_name] = total_quantity
 
         return products
 
@@ -819,27 +819,15 @@ class StatisticsView(QWidget):
             for register in self.all_registers:
                 # Get products for this register
                 products = self.get_register_product_summary(register)
-                print(f"\n>>> Register {register.id} RAW products from DB:")
-                for p, q in sorted(products.items()):
-                    if 'jambon' in p.lower():
-                        print(f"  {p}: {q}")
 
                 # Apply filters WITHOUT adding total lines yet (pass skip_totals flag)
                 filter_config_no_totals = filter_config.copy()
                 filter_config_no_totals['skip_totals'] = True
                 filtered_products_for_register = self.apply_product_filters(products, filter_config_no_totals)
 
-                print(f">>> Register {register.id} AFTER filtering:")
-                for p, q in sorted(filtered_products_for_register.items()):
-                    print(f"  {p}: {q}")
-
                 # Sum up only the filtered products
-                print(f">>> Combining into combined_products:")
                 for product_name, quantity in filtered_products_for_register.items():
-                    old_val = combined_products.get(product_name, 0)
-                    new_val = old_val + quantity
-                    combined_products[product_name] = new_val
-                    print(f"  {product_name}: {old_val} + {quantity} = {new_val}")
+                    combined_products[product_name] = combined_products.get(product_name, 0) + quantity
 
                 # Sum up sales and orders (still sum all, as we want total register stats)
                 total_sales += register.get_total_sales()
@@ -860,17 +848,10 @@ class StatisticsView(QWidget):
                         if kw.lower() in product_name.lower():
                             keyword_totals[kw] += quantity
 
-                # DEBUG: Print what we're about to send to printer
-                print("\n=== FINAL COMBINED PRODUCTS ===")
-                for product_name, quantity in sorted(combined_products.items()):
-                    print(f"{product_name}: {quantity}")
-                print(f"\nKeyword totals: {keyword_totals}")
-                print("================================\n")
-
                 # Add total lines
                 for keyword, total in keyword_totals.items():
                     if total > 0:
-                        combined_products[f"═══ TOTAL {keyword.upper()}: ═══"] = total
+                        combined_products[f"TOTAL {keyword.upper()}: "] = total
 
             # Print filtered combined report
             self.print_combined_registers_report(self.all_registers, combined_products, total_sales, total_orders)
@@ -924,7 +905,7 @@ class StatisticsView(QWidget):
                 for keyword, total in keyword_totals.items():
                     if total > 0:
                         # Add a summary line with the keyword total
-                        filtered_products[f"═══ TOTAL {keyword.upper()}: ═══"] = total
+                        filtered_products[f"TOTAL {keyword.upper()}: "] = total
 
         else:
             # No keywords - use normal category filtering (show all products in category)
